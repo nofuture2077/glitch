@@ -1,0 +1,32 @@
+@font-face { font-family: Rajdhani; src: url('../webfonts/Rajdhani-Medium.ttf'); } 
+
+body {
+  font-family: "Rajdhani", sans-serif;
+}
+
+.blue {
+  color: #84ede9;
+}
+
+.red {
+  color: #E05F4C;
+  text-shadow: 1px 1px 2px #5D2320;
+}
+
+.darkred {
+  color: #5D2320;
+}
+
+.yellow {
+  color: #EACD93;
+  text-shadow: 1px 1px 1px #5D2320;
+}
+.green {
+  color: #ADE5B9;
+}
+
+.quests {
+    right: 400px;
+    position: absolute;
+    top: 50%;
+}

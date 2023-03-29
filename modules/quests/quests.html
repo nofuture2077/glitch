@@ -1,0 +1,15 @@
+<div class="quests">
+    <span class="red">Daily Quests</span>
+    <ul class="fa-ul yellow">
+      <li><span class="fa-li"><i class="fas fa-check-square"></i></span>List icons can</li>
+      <li><span class="fa-li"><i class="fas fa-check-square"></i></span>be used to</li>
+      <li><span class="fa-li"><i class="fas fa-spinner fa-pulse"></i></span>replace bullets</li>
+      <li><span class="fa-li"><i class="far fa-square"></i></span>in lists</li>
+    </ul>
+</div>
+<script>
+    async function loadQuests() {
+      return fetch('/modules/quests/list').then(res => res.json());
+    }
+    loadQuests();
+  </script>
