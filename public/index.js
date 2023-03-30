@@ -23,3 +23,17 @@ function setInnerHTML(elm, html) {
       setInnerHTML(mN, text);
     });
   }); 
+
+const socket = new WebSocket("ws://localhost:3000");
+
+socket.addEventListener('open', () => {
+    socket.addEventListener('message', (event) => {
+        const message = JSON.parse(event.data);
+        PubSub.publish('MSG!' + message.target, message);
+    });
+
+    PubSub.subscribe("WS", (msg, data) => {
+        socket.send(JSON.stringify(data));
+    });
+});
+

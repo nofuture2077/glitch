@@ -4,6 +4,10 @@ body {
   font-family: "Rajdhani", sans-serif;
 }
 
+.abort {
+  text-decoration: line-through;
+}
+
 .blue {
   color: #84ede9;
 }
@@ -23,10 +27,4 @@ body {
 }
 .green {
   color: #ADE5B9;
-}
-
-.quests {
-    right: 400px;
-    position: absolute;
-    top: 50%;
 }

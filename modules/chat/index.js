@@ -11,7 +11,10 @@ module.exports = function(options) {
     const run = async () => {
         const chat = new Chat({
           username,
-          token
+          token,
+          log: {
+            level: 'error'
+          }
         });
       
         await chat.connect();

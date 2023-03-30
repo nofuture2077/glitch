@@ -1,15 +1,76 @@
-<div class="quests">
-    <span class="red">Daily Quests</span>
-    <ul class="fa-ul yellow">
-      <li><span class="fa-li"><i class="fas fa-check-square"></i></span>List icons can</li>
-      <li><span class="fa-li"><i class="fas fa-check-square"></i></span>be used to</li>
-      <li><span class="fa-li"><i class="fas fa-spinner fa-pulse"></i></span>replace bullets</li>
-      <li><span class="fa-li"><i class="far fa-square"></i></span>in lists</li>
-    </ul>
+<script>
+    const colorMapping = {
+        'NEW': 'yellow',
+        'ABORT': 'red abort',
+        'DONE': 'yellow',
+        'ACTIVE': 'green'
+    }
+    const classMapping = {
+        'NEW': 'fas fa-square',
+        'ABORT': 'fas fa-square-xmark',
+        'DONE': 'fas fa-check-square',
+        'ACTIVE': 'fas fa-square'
+    }
+    function renderQuests(quests) {
+        if (!quests.length) {
+            document.getElementById('quests').innerHTML = '';
+            return;
+        }
+        var div = document.createElement("div");
+        var span = document.createElement("span");
+        span.classList = 'red';
+        span.innerHTML = 'Nebenquests';
+
+        var ul = document.createElement("ul");
+        ul.classList = 'fa-ul yellow';
+        quests.forEach(quest => {
+            var li = document.createElement("li");
+            var sp = document.createElement("sp");
+            var i = document.createElement("i");
+
+            sp.classList = 'fa-li';
+            li.classList = colorMapping[quest.status];
+            li.appendChild(sp);
+            
+            i.classList = classMapping[quest.status];
+            sp.appendChild(i);
+            
+            li.append(quest.name);
+
+            ul.appendChild(li);
+        });
+
+        div.appendChild(span);
+        div.appendChild(ul);
+
+        let container = document.getElementById('quests');
+        container.innerHTML = '';
+        container.appendChild(div);
+    }
+</script>
+<div class="quests" id="quests">
 </div>
 <script>
     async function loadQuests() {
       return fetch('/modules/quests/list').then(res => res.json());
     }
-    loadQuests();
-  </script>
+    loadQuests().then(quests => {
+        renderQuests(quests);
+    });
+
+    PubSub.subscribe('MSG!quests', (msg, data) => {
+        renderQuests(data.data);
+    });
+</script>
+<style>
+    .quests {
+        position: absolute;
+        top: 50%;
+        right: 20px;
+        width: 420px;
+        font-size: 24px;
+    }
+    .quests ul {
+        margin-top: 0.5em;
+    }
+</style>
