@@ -1,6 +1,6 @@
-<span class="level blue blueborder" id="level">17</span>
+<span class="level blue blueborder" id="level"></span>
 <span class="expcontainer">
-    <span class="blue exp" id="exp">Exp: 200 / 400</span>
+    <span class="blue" id="exp"></span>
     <span class="progress-bar">
         <span class="progress" id="progress"></span>
     </span>
@@ -15,6 +15,7 @@ span.level {
     height: 64px;
     text-align: center;
     text-shadow: 2px 2px 1px rgba(132, 237, 233, 0.5);
+    box-shadow: 3px 3px 1px rgba(132, 237, 233, 0.5);
 }
 .progress-bar {
     position: relative;
@@ -23,15 +24,12 @@ span.level {
     height: 18px;
     background-color: rgba(224, 95, 76, 0.2);
     box-shadow: 2px 2px 1px rgba(224, 95, 76, 0.5);
+    clip-path: polygon(0 0, 0 100%, 100% 100%, 100% 8px, 390px 0);
 }
 .progress {
     position:absolute;
-    width: 130px;
     height: 18px;
     background-color: #E05F4C;
-}
-.exp {
-    text-shadow: 1px 1px 1px #5D2320;
 }
 .expcontainer {
     display: inline-grid;
