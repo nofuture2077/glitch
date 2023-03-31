@@ -32,9 +32,9 @@ module.exports = function(options) {
                 const data = {
                     text: msg,
                     parts: parts,
-                    mod: message.tags.mod,
+                    mod: message.mod,
                     channel: channel,
-                    broadcaster: message.tags.badges.broadcaster,
+                    broadcaster: message.tags.badges && message.tags.badges.broadcaster,
                     username: message.tags.username,
                     displayname: message.tags.displayName,
                     color: message.tags.color

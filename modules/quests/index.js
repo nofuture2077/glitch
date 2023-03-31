@@ -30,6 +30,9 @@ function questStatus(parts, status) {
     id = parseInt(parts[2]);
     quests.forEach(q => {
         if (q.id === id) {
+            if (q.status !== 'DONE' && status === 'DONE') {
+                PubSub.publish('LEVEL!EXP', q.exp);
+            }
             q.status = status;
             PubSub.publish('WS', {target: "quests", data: quests, op: "UPDATE"});
         }
