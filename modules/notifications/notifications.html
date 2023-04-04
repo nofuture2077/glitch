@@ -14,6 +14,24 @@
 <div id="snackbar"></div>
 
 <script>
+
+    function tts(sentence) {
+
+        let audio = new SpeechSynthesisUtterance(sentence);
+        audio.voice = speechSynthesis.getVoices()[144];
+        speechSynthesis.speak(audio);
+        
+        return audio;
+    } 
+
+    function type(i, t, ie, oe) {
+        input = document.getElementById(ie).innerHTML;
+        document.getElementById(oe).innerHTML += input.charAt(i);
+        setTimeout(function(){
+            ((i < input.length - 1) ? type(i+1, t, ie, oe) : false);
+        }, t);
+    }
+
     function showNotification(item) {
         playing = true;
         const alertTemplate = alertTemplates[item.type] || {
@@ -22,22 +40,42 @@
         };
 
         var x = document.getElementById("snackbar");
+        let html = vars.reduce((text, v) => text.replace('#{' + v + '}', item[v] || alertTemplate[v]), alertTemplate.html);
+        let numMatches = html.match(/#{userhash-(\d+)-(\d)}/);
 
-        if (alertTemplate.audio) {
+        if (numMatches) {
+            let num = parseInt(numMatches[1], 10);
+            let randomNum = hash(item.user) % num;
+            
+            let index = ("0000000000000000000" + randomNum).substr(-numMatches[2],numMatches[2]);
+
+            html = html.replace(/#{userhash-\d+-\d}/g, index);
+        }
+
+        if (alertTemplate.tts) {
+            const ttsMessage = vars.reduce((text, v) => text.replace('#{' + v + '}', item[v] || alertTemplate[v]), alertTemplate.tts);
+            
+            const audio = tts(ttsMessage);
+            audio.onstart = () => {
+                setInnerHTML(x, html);
+                type(0, 100, "typetemplate", "typetarget");
+                x.className = alertTemplate.style;
+            }
+
+            audio.onend = () => {
+                setTimeout(function () { x.className = x.className.replace(alertTemplate.style, "hide"); playing = false; }, 2 * 1000);
+            }
+        } else if (alertTemplate.audio) {
             const audio = new Audio(alertTemplate.audio);
 
             audio.onloadedmetadata = () => {
-                
-                const html = vars.reduce((text, v) => text.replace('#{' + v + '}', item[v] || alertTemplate[v]), alertTemplate.html);
                 setInnerHTML(x, html);
                 x.className = alertTemplate.style;
                 audio.play();
                 const duration = Math.max(audio.duration, 3);
-
                 setTimeout(function () { x.className = x.className.replace(alertTemplate.style, "hide"); playing = false; }, duration * 1000);
             }
         } else {
-            const html = vars.reduce((text, v) => text.replace('#{' + v + '}', item[v] || alertTemplate[v]), alertTemplate.html);
             setInnerHTML(x, html);
             x.className = alertTemplate.style;
             const duration = 3;
@@ -163,5 +201,18 @@
     font-size: 24px;
     display: block;
     bottom: 20px;
+}
+
+.topleft {
+    top: 20%;
+    max-width: 420px;
+}
+
+.ttstext {
+    position: absolute;
+    width: 500px;
+    left: 0px;
+    top: 310px;
+    padding: 10px;
 }
 </style>
