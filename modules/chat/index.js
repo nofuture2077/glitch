@@ -32,7 +32,7 @@ module.exports = function(options) {
                 const data = {
                     text: msg,
                     parts: parts,
-                    mod: message.mod,
+                    mod: message.tags.badges && message.tags.badges.moderator,
                     channel: channel,
                     broadcaster: message.tags.badges && message.tags.badges.broadcaster,
                     username: message.tags.username,
@@ -41,6 +41,10 @@ module.exports = function(options) {
                 };
                 PubSub.publish('MSG' + parts[0], data);
             }
+        });
+
+        PubSub.subscribe('PostChatMessage', (msg, message) => {
+            chat.broadcast(message);
         });
     };
 

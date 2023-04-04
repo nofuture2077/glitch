@@ -1,0 +1,167 @@
+<script>
+    let queue = [];
+    let playing = false;
+    let index = 0;
+    let alertTemplates = {};
+    const vars = ['text', 'user', 'amout'];
+
+    fetch ('./alerts/alerts.json').then(res => res.json()).then((templates) => {
+        alertTemplates = templates;
+    }, () => {
+        console.warn('Could not load alerts. Place them in public/alerts/');
+    })
+</script>
+<div id="snackbar"></div>
+
+<script>
+    function showNotification(item) {
+        playing = true;
+        const alertTemplate = alertTemplates[item.type] || {
+            html: '<div>New alert</div>',
+            style: 'show'
+        };
+
+        var x = document.getElementById("snackbar");
+
+        if (alertTemplate.audio) {
+            const audio = new Audio(alertTemplate.audio);
+
+            audio.onloadedmetadata = () => {
+                
+                const html = vars.reduce((text, v) => text.replace('#{' + v + '}', item[v] || alertTemplate[v]), alertTemplate.html);
+                setInnerHTML(x, html);
+                x.className = alertTemplate.style;
+                audio.play();
+                const duration = Math.max(audio.duration, 3);
+
+                setTimeout(function () { x.className = x.className.replace(alertTemplate.style, "hide"); playing = false; }, duration * 1000);
+            }
+        } else {
+            const html = vars.reduce((text, v) => text.replace('#{' + v + '}', item[v] || alertTemplate[v]), alertTemplate.html);
+            setInnerHTML(x, html);
+            x.className = alertTemplate.style;
+            const duration = 3;
+            setTimeout(function () { x.className = x.className.replace(alertTemplate.style, "hide"); playing = false; }, duration * 1000);
+        }
+
+    }
+
+    function checkQueue() {
+        if (playing) return;
+
+        const queuelength = queue.length;
+
+        if (queuelength - index > 3) {
+            // skip follow bot
+            index = queue.length;
+        }
+        if (index >= queue.length) return
+
+        const item = queue[index++];
+
+        if (!item) return;
+
+        showNotification(item);
+    }
+
+    PubSub.subscribe('MSG!notifications', (msg, data) => {
+        queue.push(data.data);
+    });
+
+    setInterval(checkQueue, 1000)
+</script>
+
+<style>
+/* The snackbar - position it at the bottom and in the middle of the screen */
+#snackbar {
+  visibility: hidden;
+  font-weight: bold;
+  font-size: 24px;
+  padding: 16px;
+  position: fixed;
+  z-index: 1;
+  height: auto;
+}
+
+.top {
+  left: 50%;
+  top: 20px; 
+  width: 300px;
+  margin-left: -150px;
+  text-align: center;
+}
+
+.left {
+    top: 40%;
+    max-width: 420px;
+}
+
+.info {
+    color: #fff;
+    background-color: rgb(var(--blue));
+     box-shadow: 3px 3px 1px rgba(var(--blue), 0.6), 6px 6px 1px rgba(var(--blue), 0.3);
+}
+
+.new {
+    color: #fff;
+    background-color: rgb(var(--yellow));
+    box-shadow: 3px 3px 1px rgba(var(--yellow), 0.6), 6px 6px 1px rgba(var(--yellow), 0.3);
+}
+
+.success {
+    color: #fff;
+     background-color: rgb(var(--green));
+     box-shadow: 3px 3px 1px rgba(var(--green), 0.6), 6px 6px 1px rgba(var(--green), 0.3);
+}
+
+.failed {
+    color: #fff;
+    background-color: rgb(var(--red));
+    box-shadow: 3px 3px 1px rgba(var(--red), 0.6), 6px 6px 1px rgba(var(--red), 0.3);
+}
+
+/* Show the snackbar when clicking on a button (class added with JavaScript) */
+#snackbar.show {
+  visibility: visible; /* Show the snackbar */
+  /* Add animation: Take 0.5 seconds to fade in and out the snackbar.
+  However, delay the fade out process for 2.5 seconds */
+  -webkit-animation: fadein 0.5s;
+  animation: fadein 0.5s;
+}
+
+#snackbar.hide {
+    webkit-animation: fadeout 0.5s 0.5s;
+    animation: fadeout  0.5s 0.5s;
+}
+
+#snackbar img {
+  width: 100%
+}
+
+/* Animations to fade the snackbar in and out */
+@-webkit-keyframes fadein {
+  from {opacity: 0;}
+  to {opacity: 1;}
+}
+
+@keyframes fadein {
+  from {opacity: 0;}
+  to {opacity: 1;}
+}
+
+@-webkit-keyframes fadeout {
+  from {opacity: 1;}
+  to {opacity: 0;}
+}
+
+@keyframes fadeout {
+  from {opacity: 1;}
+  to {opacity: 0;}
+}
+
+.notificationtext {
+    font-size: 24px;
+    display: block;
+    bottom: 20px;
+}
+</style>

@@ -1,7 +1,17 @@
 @font-face { font-family: Rajdhani; src: url('../webfonts/Rajdhani-Medium.ttf'); } 
 
+:root {
+  --black: 0, 0, 0;
+  --blue: 50, 190, 210;
+  --red: 224, 95, 76;
+  --darkred: 93, 35, 32;
+  --yellow: 234, 205, 147;
+  --green: 173, 229, 185;
+}
+
 body {
   font-family: "Rajdhani", sans-serif;
+  margin: 20px;
 }
 
 .abort {
@@ -9,28 +19,37 @@ body {
 }
 
 .blueborder{
-  border: 4px solid #84ede9;
+  border: 6px solid rgb(var(--blue));
 }
 
 .darkred {
-  color: #5D2320;
+  color: rgb(var(--darkred));
+  text-shadow: 1px 1px 1px rgba(var(--black), 0.5);
 }
 
 .red {
-  color: #E05F4C;
-  text-shadow: 2px 2px 1px rgba(224, 95, 76, 0.5);
+  color: rgb(var(--red));
+  text-shadow: 1px 1px 1px rgba(var(--black), 0.5);
 }
 
 .yellow {
-  color: #EACD93;
-  text-shadow: 2px 2px 1px rgba(234, 205, 147, 0.5)
+  color: rgb(var(--yellow));
+  text-shadow: 1px 1px 1px rgba(var(--black), 0.5);
 }
 .green {
-  color: #ADE5B9;
-  text-shadow: 2px 2px 1px rgba(173, 229, 185, 0.5);
+  color: rgb(var(--green));
+  text-shadow: 1px 1px 1px rgba(var(--black), 0.5);
 }
 
 .blue {
-  color: #84ede9;
-  text-shadow: 2px 2px 1px rgba(132, 237, 233, 0.5);
+  color: rgb(var(--blue));
+  text-shadow: 1px 1px 1px rgba(var(--black), 0.5);
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.textcap {
+  text-transform: capitalize;
 }

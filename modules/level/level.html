@@ -1,40 +1,44 @@
-<span class="level blue blueborder" id="level"></span>
-<span class="expcontainer">
-    <span class="blue" id="exp"></span>
-    <span class="progress-bar">
-        <span class="progress" id="progress"></span>
+<div class="levelcontainer" id="levelcontainer">
+    <span class="level blue blueborder" id="level"></span>
+    <span class="expcontainer">
+        <span class="blue bold" id="exp"></span>
+        <span class="progress-bar">
+            <span class="progress" id="progress"></span>
+        </span>
     </span>
-</span>
+</div>
 
 <style>
+.levelcontainer {
+    display: flex;
+    align-items: start;
+}
 span.level {
-    font-size: 52px;
+    font-size: 64px;
     font-weight: bold;
     display: inline-block;
-    width: 64px;
-    height: 64px;
+    width: 80px;
+    height: 80px;
     text-align: center;
-    text-shadow: 2px 2px 1px rgba(132, 237, 233, 0.5);
-    box-shadow: 3px 3px 1px rgba(132, 237, 233, 0.5);
+    text-shadow: 3px 3px 1px rgba(var(--blue), 0.6), 6px 6px 1px rgba(var(--blue), 0.3);
+    box-shadow: 3px 3px 1px rgba(var(--blue), 0.6), 6px 6px 1px rgba(var(--blue), 0.3);
 }
 .progress-bar {
     position: relative;
     display: inline-block;
     width: 400px;
     height: 18px;
-    background-color: rgba(224, 95, 76, 0.2);
-    box-shadow: 2px 2px 1px rgba(224, 95, 76, 0.5);
+    background-color: rgb(var(--darkred));
+    box-shadow: 3px 3px 1px rgba(var(--darkred), 0.6), 6px 6px 1px rgba(var(--darkred), 0.3);
 }
 .progress {
     position:absolute;
     height: 18px;
-    background-color: #E05F4C;
+    background-color: rgb(var(--red));
 }
 .expcontainer {
     display: inline-grid;
-    position: absolute;
-    left: 86px;
-    top: 30px;
+    padding: 30px 10px;
 }
 </style>
 <script>
