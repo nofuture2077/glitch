@@ -3,12 +3,15 @@ const ws = require('ws');
 const app = express();
 const PubSub = require('pubsub-js');
 
+const settings = require('./modules/settings')({app: app});
+
 const modules = {
-  quests: require('./modules/quests')({app: app}),
-  level: require('./modules/level')({app: app}),
-  notifications: require('./modules/notifications')({app: app}),
-  events: require('./modules/events')({app: app}),
-  chat: require('./modules/chat')({app: app})
+  settings: settings,
+  quests: require('./modules/quests')({app: app, settings: settings}),
+  level: require('./modules/level')({app: app, settings: settings}),
+  notifications: require('./modules/notifications')({app: app, settings: settings}),
+  events: require('./modules/events')({app: app, settings: settings}),
+  chat: require('./modules/chat')({app: app, settings: settings})
 }
 
 const port = 3000;

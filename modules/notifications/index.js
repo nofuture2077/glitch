@@ -6,7 +6,6 @@ const queue = [];
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 
 module.exports = function(options) {
-
     PubSub.subscribe('notifications', (message, data) => {
         console.log(data);
         queue.push(data);

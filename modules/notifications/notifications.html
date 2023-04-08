@@ -1,5 +1,4 @@
 <script>
-    const tts_on = true;
     let queue = [];
     let playing = false;
     let index = 0;
@@ -73,7 +72,7 @@
             html = html.replace(/#{userhash-\d+-\d}/g, index);
         }
 
-        if (alertTemplate.tts && tts_on) {
+        if (alertTemplate.tts && getSetting('tts_on') === 'on') {
             if (alertTemplate.audio) {
                 new Audio(alertTemplate.audio).play();
             }
@@ -137,6 +136,8 @@
 
         if (!item) return;
 
+        if (getSetting(item.type) === 'off') return;
+
         showNotification(item);
     }
 
@@ -148,7 +149,6 @@
 </script>
 
 <style>
-/* The snackbar - position it at the bottom and in the middle of the screen */
 #snackbar {
   visibility: hidden;
   font-weight: bold;

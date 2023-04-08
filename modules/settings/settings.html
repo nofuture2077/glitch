@@ -1,0 +1,17 @@
+<script>
+    SETTINGS = {};
+
+    async function loadSettings() {
+      return fetch('/modules/settings/list').then(res => res.json());
+    }
+    loadSettings().then(settings => {
+        SETTINGS = {...settings};
+    });
+
+    getSetting = (key) => SETTINGS[key]; 
+
+    PubSub.subscribe('MSG!settings', (msg, data) => {
+        console.log("New setting", data.data);
+        SETTINGS[data.data.key] = data.data.value;
+    });
+</script>
