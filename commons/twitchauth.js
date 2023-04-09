@@ -29,5 +29,5 @@ const authProvider = new RefreshingAuthProvider(
 
 module.exports = {
     authProvider,
-    onReady: authProvider.addUserForToken(tokenData)
+    onReady: authProvider.addUserForToken(tokenData, ['chat', 'moderator:read:followers'])
 }

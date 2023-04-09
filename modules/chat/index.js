@@ -1,55 +1,40 @@
 require('dotenv').config();
-const { Chat, ChatEvents } = require("twitch-js");
+const { authProvider, onReady} = require('../../commons/twitchauth');
+const { ChatClient } = require('@twurple/chat');
 const PubSub = require('pubsub-js');
 
-const username = process.env.USERNAME;
-const token = process.env.TOKEN;
 const channel = process.env.CHANNEL;
 
+onReady.then(() => {
+    const chatClient = new ChatClient({ authProvider, channels: [channel] });
+
+    chatClient.onMessage(async (channel, user, text, msg) => {
+        const isCommand = text.indexOf('!' === 0);
+        if (isCommand) {
+            const parts = text.split(" ");
+            const data = {
+                text: text,
+                parts: parts,
+                mod: msg.userInfo.isMod,
+                channel: channel,
+                broadcaster: msg.userInfo.isBroadcaster,
+                username: msg.userInfo.userName,
+                displayname: msg.userInfo.displayName,
+                color: msg.userInfo.color
+            };
+            PubSub.publish('MSG' + parts[0], data);
+        }
+    });
+
+    PubSub.subscribe('PostChatMessage', (msg, message) => {
+        chatClient.say(channel, message);
+    });
+
+    chatClient.connect();
+});
+
+
 module.exports = function(options) {
-
-    const run = async () => {
-        const chat = new Chat({
-          username,
-          token,
-          log: {
-            level: 'error'
-          }
-        });
-      
-        await chat.connect();
-        await chat.join(channel);
-      
-        chat.on(ChatEvents.ALL, (message) => {
-            const msg = message.message;
-            const channel = message.channel ? message.channel.substr(1) : undefined;
-            if (!msg) {
-                return;
-            }
-            const isCommand = msg.indexOf('!' === 0);
-            if (isCommand) {
-                const parts = msg.split(" ");
-                const data = {
-                    text: msg,
-                    parts: parts,
-                    mod: message.tags.badges && message.tags.badges.moderator,
-                    channel: channel,
-                    broadcaster: message.tags.badges && message.tags.badges.broadcaster,
-                    username: message.tags.username,
-                    displayname: message.tags.displayName,
-                    color: message.tags.color
-                };
-                PubSub.publish('MSG' + parts[0], data);
-            }
-        });
-
-        PubSub.subscribe('PostChatMessage', (msg, message) => {
-            chat.broadcast(message);
-        });
-    };
-
-    run();
-
     return {
     };
  }
