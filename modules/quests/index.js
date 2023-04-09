@@ -9,6 +9,8 @@ let state = {
     quests: []
 }
 
+defaultExp = 500;
+
 storage.init({
     dir: './storage/'
 }).then(options => {
@@ -22,10 +24,12 @@ storage.init({
 
 function addQuest(parts) {
     if (parts.length < 4) return; // write message to chat?
-    const text = parts.slice(3).join(" ");
+    const expTest = parseInt(parts[1]);
+
+    const text = parts.slice(expTest ? 2 : 1).join(" ");
     const newQuest = {
         id: state.questId++,
-        exp: parseInt(parts[2]),
+        exp: expTest || defaultExp,
         name: text,
         status: 'PROPOSED'
     };
@@ -40,8 +44,14 @@ function acceptQuest(parts) {
 
     const quest = proposed.find(p => p.id === id);
 
+    let exp = 0;
+    if (parts.length === 4) {
+        exp = parseInt(parts[3]);
+    }
+
     if (quest) {
         quest.status = 'NEW';
+        quest.exp = exp || quest.exp; 
         proposed = proposed.filter(q => q.id !== id);
         state.quests.push(quest);
 
@@ -110,40 +120,37 @@ module.exports = function(options) {
 
     const handleQuestMessage = (msg, data) => {
         if (data.parts.length === 1) {
-            PubSub.publish('PostChatMessage', 'Schlage über den Chat Nebenquests vor. Quests geben Erfahrungspunkte und steigern das Streamer Level. !quests add 500 Mach einen Kickflip');
+            PubSub.publish('PostChatMessage', 'Schlage über den Chat Nebenquests vor. Quests geben Erfahrungspunkte und steigern das Streamer Level. !quest Mach einen Kickflip');
             return;
         }
         const cmd = data.parts[1];
-        if (cmd === "add") {
-            addQuest(data.parts);
-        }
 
-        if (!(data.mod || data.broadcaster)) return;
-        if (cmd === "list") {
+        if (cmd === "list" && (data.mod || data.broadcaster)) {
             let quests = state.quests.map(q => q.id + " - " + q.name + " - " + q.status + " - " +q.exp + " Exp");
-            PubSub.publish('PostChatMessage', quests.join(" // "));
+            return PubSub.publish('PostChatMessage', quests.join(" // "));
         }
-        if (cmd === "done") {
-            questStatus(data.parts, "DONE");
+        if (cmd === "done" && (data.mod || data.broadcaster)) {
+            return questStatus(data.parts, "DONE");
         }
-        if (cmd === "abort") {
-            questStatus(data.parts, "ABORT");
+        if (cmd === "abort" && (data.mod || data.broadcaster)) {
+            return questStatus(data.parts, "ABORT");
         }
-        if (cmd === "active") {
-            questStatus(data.parts, "ACTIVE");
+        if (cmd === "active" && (data.mod || data.broadcaster)) {
+            return questStatus(data.parts, "ACTIVE");
         }
-        if (cmd === "accept") {
-            acceptQuest(data.parts);
+        if (cmd === "accept" && (data.mod || data.broadcaster)) {
+            return acceptQuest(data.parts);
         }
-        if (cmd === "delete") {
-            deleteQuest(data.parts);
+        if (cmd === "delete" && (data.mod || data.broadcaster)) {
+            return deleteQuest(data.parts);
         }
-        if (cmd === "clear") {
-            clearQuests();
+        if (cmd === "clear" && (data.mod || data.broadcaster)) {
+            return clearQuests();
         }
-        if (cmd === "text") {
-            changeText(data.parts);
+        if (cmd === "text" && (data.mod || data.broadcaster)) {
+            return changeText(data.parts);
         }
+        return addQuest(data.parts);
     };
 
     PubSub.subscribe('MSG!quests', handleQuestMessage);
