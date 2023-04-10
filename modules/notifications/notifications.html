@@ -149,10 +149,13 @@
 
         const queuelength = queue.length;
 
-        if (queuelength - index > 3) {
+        while (index + 3 < queuelength) {
             // skip follow bot
-            index = queue.length;
+            if (queue[index].type !== "follow") break;
+            console.log('skip', queue[index]);
+            index++;
         }
+
         if (index >= queue.length) return
 
         const item = queue[index++];
