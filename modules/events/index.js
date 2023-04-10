@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { authProvider, onReady} = require('../../commons/twitchauth');
+const { authProvider } = require('../../commons/twitchauth');
 const { ApiClient } = require('@twurple/api');
 const { EventSubWsListener } = require('@twurple/eventsub-ws');
 const PubSub = require('pubsub-js');
@@ -7,20 +7,29 @@ const PubSub = require('pubsub-js');
 const botUserId = String(process.env.USERID);
 const channelUserId = String(process.env.CHANNELID);
 
+const apiClient = new ApiClient({ authProvider });
 
-onReady.then(() => {
-	const apiClient = new ApiClient({ authProvider });
-	const listener = new EventSubWsListener({ apiClient });
+apiClient.asUser(botUserId, (ctx) => {
 
-	const onlineSubscription = listener.onChannelFollow(channelUserId, botUserId, e => {
+	const listener = new EventSubWsListener({ apiClient: ctx });
+
+	listener.onChannelRaidTo(channelUserId, (ev) => {
+		console.log(ev);
+		const displayName = ev.raidingBroadcasterDisplayName();
+		const viewers = ev.viewers();
+
+		PubSub.publish('notifications', {type: 'raid', user: displayName, amount: viewers});
+		PubSub.publish('LEVEL!EXP', 10 * viewers);
+	});
+
+	listener.onChannelFollow(channelUserId, botUserId, e => {
 		PubSub.publish('notifications', {type: 'follow', user: e.userDisplayName});
 		PubSub.publish('LEVEL!EXP', 100);
 	});
-	
+
 	listener.start();
-}, () => {
-	console.log(this.arguments);
 });
+
 
 module.exports = function(options) {}
 

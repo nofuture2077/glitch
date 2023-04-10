@@ -7,10 +7,11 @@ const settings = require('./modules/settings')({app: app});
 
 const modules = {
   settings: settings,
+  events: require('./modules/events')({app: app, settings: settings}),
+  clips: require('./modules/clips')({app: app, settings: settings}),
   quests: require('./modules/quests')({app: app, settings: settings}),
   level: require('./modules/level')({app: app, settings: settings}),
   notifications: require('./modules/notifications')({app: app, settings: settings}),
-  events: require('./modules/events')({app: app, settings: settings}),
   chat: require('./modules/chat')({app: app, settings: settings})
 }
 

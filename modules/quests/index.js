@@ -70,6 +70,7 @@ function questStatus(parts, status) {
             if (q.status !== 'DONE' && status === 'DONE') {
                 PubSub.publish('LEVEL!EXP', q.exp);
                 PubSub.publish('notifications', {type: 'quest#success', text: "Quest erfolgreich: " + q.name});
+                setTimeout(() => PubSub.publish('ClipIt'), 5000);
             } else if (status === 'ABORT') {
                 PubSub.publish('notifications', {type: 'quest#failed', text: "Quest fehlgeschlagen: " + q.name});
             } else {
@@ -120,7 +121,7 @@ module.exports = function(options) {
 
     const handleQuestMessage = (msg, data) => {
         if (data.parts.length === 1) {
-            PubSub.publish('PostChatMessage', 'Schlage über den Chat Nebenquests vor. Quests geben Erfahrungspunkte und steigern das Streamer Level. !quest Mach einen Kickflip');
+            PubSub.publish('PostChatMessage', 'Schlage über den Chat Nebenquests vor. Quests geben Erfahrungspunkte und steigern das Streamer Level. !addquest Mach einen Kickflip');
             return;
         }
         const cmd = data.parts[1];
@@ -155,6 +156,7 @@ module.exports = function(options) {
 
     PubSub.subscribe('MSG!quests', handleQuestMessage);
     PubSub.subscribe('MSG!quest', handleQuestMessage);
+    PubSub.subscribe('MSG!addquest', handleQuestMessage);
 
     options.app.get('/modules/quests/list', (req, res) => {
         res.json(state.quests);
