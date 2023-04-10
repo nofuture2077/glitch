@@ -3,7 +3,7 @@
     let playing = false;
     let index = 0;
     let alertTemplates = {};
-    const vars = ['text', 'user', 'amout'];
+    const vars = ['text', 'user', 'amount'];
 
     fetch ('./alerts/alerts.json').then(res => res.json()).then((templates) => {
         alertTemplates = templates;
@@ -52,6 +52,58 @@
         }, t);
     }
 
+    function playAudio(src, startCB, endCB, minDuration) {
+        !src && (startCB() & endCB());
+        const audio = new Audio(src)
+
+        audio.onloadedmetadata = () => {
+            const duration = audio.duration;
+            startCB && startCB();
+            audio.play();
+            endCB && setTimeout(endCB, Math.max(duration * 1000, minDuration || 0));
+        };
+    }
+
+    function playTTS(msg, startCB, endCB, minDuration) {
+        textToSpeech(msg).then(audioContent => {
+            playAudio('data:audio/mp3;base64,' + audioContent, startCB, endCB, minDuration)
+        });
+    }
+
+    function showElement(html, style) {
+        var snackbar = document.getElementById("snackbar");
+        setInnerHTML(snackbar, html);
+        snackbar.className = style;
+    }
+
+    function hideElement(style) {
+        
+        var snackbar = document.getElementById("snackbar");
+        snackbar.className = snackbar.className.replace(style, "hide");
+        playing = false;
+    }
+
+    function startTypingEffect(typing) {
+        if (typing) {
+            type(0, 50, "typetemplate", "typetarget");
+        }
+    }
+
+    function resolveUserHash(html, user) {
+        let numMatches = html.match(/#{userhash-(\d+)-(\d)}/);
+
+        if (numMatches) {
+            let num = parseInt(numMatches[1], 10);
+            let randomNum = hash(user) % num;
+            
+            let index = ("0000000000000000000" + randomNum).substr(-numMatches[2],numMatches[2]);
+
+            return html.replace(/#{userhash-\d+-\d}/g, index);
+        }
+
+        return html;
+    }
+
     function showNotification(item) {
         playing = true;
         const alertTemplate = alertTemplates[item.type] || {
@@ -59,64 +111,35 @@
             style: 'show'
         };
 
-        var x = document.getElementById("snackbar");
+        
         let html = vars.reduce((text, v) => text.replace('#{' + v + '}', item[v] || alertTemplate[v]), alertTemplate.html);
-        let numMatches = html.match(/#{userhash-(\d+)-(\d)}/);
+        html = resolveUserHash(html, item.user);
 
-        if (numMatches) {
-            let num = parseInt(numMatches[1], 10);
-            let randomNum = hash(item.user) % num;
-            
-            let index = ("0000000000000000000" + randomNum).substr(-numMatches[2],numMatches[2]);
-
-            html = html.replace(/#{userhash-\d+-\d}/g, index);
-        }
+        const ttsMessage = vars.reduce((text, v) => { 
+            return text.replace('#{' + v + '}', (v === "user" && alertTemplates.useralias) ? (alertTemplates.useralias[item[v]] || item[v]) : (item[v] || alertTemplate[v]));
+        }, alertTemplate.tts || "");
 
         if (alertTemplate.tts && getSetting('tts_on') === 'on') {
-            if (alertTemplate.audio) {
-                new Audio(alertTemplate.audio).play();
-            }
-            const ttsMessage = vars.reduce((text, v) => { 
-                return text.replace('#{' + v + '}', (v === "user" && alertTemplate.useralias) ? (alertTemplate.useralias[item[v]] || item[v]) : (item[v] || alertTemplate[v]));
-            }, alertTemplate.tts);
-            
-            textToSpeech(ttsMessage).then(audioContent => {
-                const audio = new Audio('data:audio/mp3;base64,' + audioContent);
+            playAudio(alertTemplate.audio, 
+                () => showElement(html, alertTemplate.style), 
+                () => playTTS(ttsMessage, 
+                    () => startTypingEffect(alertTemplate.typing), 
+                    () => hideElement(alertTemplate.style),
+                    7000)
+                );
 
-                audio.onloadedmetadata = () => {
-                    setInnerHTML(x, html);
-                    x.className = alertTemplate.style;
-                    let duration = Math.max(audio.duration, 3);
-                    if (alertTemplate.typing) {
-                        type(0, 50, "typetemplate", "typetarget");
-                        duration = Math.max(duration, 7);
-                    }
-                    audio.play();
-                    setTimeout(function () { x.className = x.className.replace(alertTemplate.style, "hide"); playing = false; }, duration * 1000);
-                }
-            });
         } else if (alertTemplate.audio) {
-            const audio = new Audio(alertTemplate.audio);
-
-            audio.onloadedmetadata = () => {
-                setInnerHTML(x, html);
-                x.className = alertTemplate.style;
-                let duration = Math.max(audio.duration, 3);
-                if (alertTemplate.typing) {
-                    type(0, 50, "typetemplate", "typetarget");
-                    duration = Math.max(duration, 7);
-                }
-                audio.play();
-                setTimeout(function () { x.className = x.className.replace(alertTemplate.style, "hide"); playing = false; }, duration * 1000);
-            }
+            playAudio(alertTemplate.audio, 
+                () => showElement(html, alertTemplate.style) && startTypingEffect(alertTemplate.typing), 
+                () => hideElement(alertTemplate.style), 
+                5
+            );
         } else {
-            setInnerHTML(x, html);
-            x.className = alertTemplate.style;
-            if (alertTemplate.typing) {
-                type(0, 100, "typetemplate", "typetarget");
-            }
-            const duration = 3;
-            setTimeout(function () { x.className = x.className.replace(alertTemplate.style, "hide"); playing = false; }, duration * 1000);
+            playAudio(null, 
+                () => showElement(html, alertTemplate.style) && startTypingEffect(alertTemplate.typing), 
+                () => hideElement(alertTemplate.style), 
+                3
+            );
         }
 
     }
