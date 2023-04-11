@@ -49,12 +49,15 @@
             chatNode.innerHTML += html;
         }
 
-        setTimeout(() => {
-            const msgDom = document.getElementById('message' + data.data.id);
-            if (msgDom) {
-               // msgDom.remove();
-            }
-        }, 30000);
+        const fade = Number(getSetting('chat_fade'));
+        if (fade) {
+            setTimeout(() => {
+                const msgDom = document.getElementById('message' + data.data.id);
+                if (msgDom) {
+                msgDom.remove();
+                }
+            }, fade * 1000);
+        }
 
         if (chatNode.children.length > 5) {
             chatNode.children[0].remove();
