@@ -1,0 +1,88 @@
+<div id="chat" class="blue"></div>
+<script>
+    let sevenTVEmotes = {};
+    let channelBadges = {};
+    let globalBadges = {};
+
+    function renderMessage(msg) {
+        let html = '<div class="message" id="message' + msg.id + '">';
+        const badges = Object.keys(msg.badges);
+        badges.forEach(badge => {
+            const url = channelBadges[badge] || globalBadges[badge]; 
+            html += '<img class="badge" src="' + url + '" />';
+        });
+        html += `<span style="color: ${msg.color}">${msg.displayname}:</span> `;
+        msg.parsedParts.forEach(part => {
+            if (Array.isArray(part)) {
+                html += part.map(p => {
+                    const sTV = sevenTVEmotes[p];
+                    if (sTV) {
+                        return '<img src="' + sTV + '" />'
+                    }
+                    return p
+                }).join(" ");
+            } else {
+                html += '<img src="' + part + '" />';
+            }
+        });
+        html += '</div>';
+        return html;
+    };
+
+    fetch('https://7tv.io/v3/users/twitch/CHANNEL_ID').then(res => res.json()).then(emotes => {
+        sevenTVEmotes = emotes.emote_set.emotes.reduce((a, v) => ({ ...a, [v.name]: v.data.host.url + '/' + v.data.host.files[0].name}), {});
+    });
+
+    fetch('/modules/chat/badges/global').then(res => res.json()).then(globalBadgesData => {
+        globalBadges = globalBadgesData;
+    });
+
+    fetch('/modules/chat/badges/channel').then(res => res.json()).then(channelBadgesData => {
+        channelBadges = channelBadgesData;
+    });
+
+    const chatNode = document.getElementById('chat');
+
+    PubSub.subscribe('MSG!chat', (msg, data) => {
+        if (getSetting('chat_on') === 'on') {
+            const html = renderMessage(data.data);
+            chatNode.innerHTML += html;
+        }
+
+        setTimeout(() => {
+            const msgDom = document.getElementById('message' + data.data.id);
+            if (msgDom) {
+                msgDom.remove();
+            }
+        }, 30000);
+
+        if (chatNode.children.length > 5) {
+            chatNode.children[0].remove();
+        }
+    });
+</script>
+
+<style>
+    #chat {
+        font-size: 20px;
+        width: 500px;
+        display: flex;
+        flex-direction: column-reverse;
+        position: absolute;
+        bottom: 90px;
+        left: 30px;
+    }
+
+    #chat img {
+        max-height: 20px;
+    }
+
+    img.badge {
+        padding-right: 4px;
+    }
+
+    .message {
+        line-height: 50%;
+        padding-bottom: 8px;
+    }
+</style>

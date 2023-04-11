@@ -13,7 +13,7 @@ api.asUser(botUserId, (ctx) => {
         ctx.clips.createClip({ channel: channelId }).then((clipId) => {
             ctx.clips.getClipById(clipId).then((clip) => {
                 if (clip) {
-                    PubSub.publish('PostChatMessage', 'Neuer Clip: ' + clip.url);
+                    PubSub.publish('PostChatMessage', 'Neuer Clip: ' + clip.url());
                 }
             }, (error) => {
                 console.log(error)

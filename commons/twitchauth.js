@@ -25,31 +25,11 @@ const authProvider = new RefreshingAuthProvider(
 );
 
 authProvider.addUser(botUserId, botTokenData, [
-    "chat",
-    "clips:edit",
-    "bits:read",
-    "channel:manage:raids",
-    "channel:manage:redemptions",
-    "channel:read:goals",
-    "channel:read:hype_train",
-    "channel:read:polls",
-    "channel:read:predictions",
-    "channel:read:redemptions",
-    "channel:read:subscriptions",
-    "channel:read:vips",
-    "channel:manage:vips",
-    "moderator:manage:announcements",
-    "moderator:read:chatters",
-    "moderator:read:shoutouts",
-    "moderator:read:followers",
-    "moderator:read:shield_mode",
-    "whispers:read",
-    "whispers:edit"
+    "chat"
 ]);
 
 authProvider.addUser(channelUserId, channelTokenData, []);
 
-debugger;
 module.exports = {
     authProvider
 }

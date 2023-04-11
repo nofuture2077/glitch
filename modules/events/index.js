@@ -27,6 +27,22 @@ apiClient.asUser(botUserId, (ctx) => {
 		PubSub.publish('LEVEL!EXP', 100);
 	});
 
+	listener.onChannelSubscription(channelUserId, (ev) => {
+		console.log(ev);
+	});
+
+	listener.onChannelSubscriptionGift(channelUserId, (ev) => {
+		console.log(ev);
+	});
+
+	listener.onChannelSubscriptionMessage(channelUserId, (ev) => {
+		console.log(ev);
+	});
+
+	listener.onChannelCheer(channelUserId, (ev) => {
+		console.log(ev);
+	});
+
 	listener.start();
 });
 
