@@ -1,4 +1,4 @@
-<div id="chat" class="blue"></div>
+<div id="chat" class="white"></div>
 <script>
     let sevenTVEmotes = {};
     let channelBadges = {};
@@ -11,7 +11,7 @@
             const url = channelBadges[badge] || globalBadges[badge]; 
             html += '<img class="badge" src="' + url + '" />';
         });
-        html += `<span style="color: ${msg.color}">${msg.displayname}:</span> `;
+        html += `<span style="color: ${msg.color};font-weight: 800;">${msg.displayname}:</span> `;
         msg.parsedParts.forEach(part => {
             if (Array.isArray(part)) {
                 html += part.map(p => {
@@ -52,7 +52,7 @@
         setTimeout(() => {
             const msgDom = document.getElementById('message' + data.data.id);
             if (msgDom) {
-                msgDom.remove();
+               // msgDom.remove();
             }
         }, 30000);
 
@@ -65,12 +65,14 @@
 <style>
     #chat {
         font-size: 20px;
-        width: 500px;
+        width: 550px;
         display: flex;
         flex-direction: column-reverse;
         position: absolute;
-        bottom: 90px;
-        left: 30px;
+        bottom: 20px;
+        left: 20px;
+        max-height: 400px;
+        overflow: hidden;
     }
 
     #chat img {
@@ -78,11 +80,11 @@
     }
 
     img.badge {
-        padding-right: 4px;
+        padding: 0 2px;
     }
 
     .message {
-        line-height: 50%;
-        padding-bottom: 8px;
+        line-height: 80%;
+        padding: 4px 0;
     }
 </style>

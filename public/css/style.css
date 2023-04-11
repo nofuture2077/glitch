@@ -1,7 +1,6 @@
-@font-face { font-family: Rajdhani; src: url('../webfonts/Rajdhani-Medium.ttf'); } 
-
 :root {
   --black: 0, 0, 0;
+  --white: 255, 255, 255;
   --blue: 50, 190, 210;
   --red: 224, 95, 76;
   --darkred: 93, 35, 32;
@@ -10,8 +9,9 @@
 }
 
 body {
-  font-family: "Rajdhani", sans-serif;
+  font-family: "Open Sans", sans-serif;
   margin: 20px;
+  background-color: #000;
 }
 
 .abort {
@@ -22,28 +22,37 @@ body {
   border: 6px solid rgb(var(--blue));
 }
 
+.boxshadow {
+  box-shadow: 4px 4px 0px rgba(var(--blue), 0.5), -4px -4px 0px rgba(var(--red), 0.5);
+}
+
 .darkred {
   color: rgb(var(--darkred));
-  text-shadow: 1px 1px 1px rgba(var(--black), 0.5);
+  text-shadow: 1px 1px 0px rgba(var(--blue), 0.5),-1px -1px 0px rgba(var(--red), 0.5);
 }
 
 .red {
   color: rgb(var(--red));
-  text-shadow: 1px 1px 1px rgba(var(--black), 0.5);
+  text-shadow: 1px 1px 0px rgba(var(--blue), 0.5),-1px -1px 0px rgba(var(--red), 0.5);
 }
 
 .yellow {
   color: rgb(var(--yellow));
-  text-shadow: 1px 1px 1px rgba(var(--black), 0.5);
+  text-shadow: 1px 1px 0px rgba(var(--blue), 0.5),-1px -1px 0px rgba(var(--red), 0.5);
 }
 .green {
   color: rgb(var(--green));
-  text-shadow: 1px 1px 1px rgba(var(--black), 0.5);
+  text-shadow: 1px 1px 0px rgba(var(--blue), 0.5),-1px -1px 0px rgba(var(--red), 0.5);
 }
 
 .blue {
   color: rgb(var(--blue));
-  text-shadow: 1px 1px 1px rgba(var(--black), 0.5);
+  text-shadow: 1px 1px 0px rgba(var(--blue), 0.5),-1px -1px 0px rgba(var(--red), 0.5);
+}
+
+.white {
+  color: rgb(var(--white));
+  text-shadow: 1px 1px 0px rgba(var(--blue), 0.5),-1px -1px 0px rgba(var(--red), 0.5);
 }
 
 .bold {

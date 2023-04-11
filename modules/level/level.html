@@ -1,8 +1,8 @@
 <div class="levelcontainer" id="levelcontainer">
-    <span class="level blue blueborder" id="level"></span>
+    <span class="level blue blueborder boxshadow" id="level"></span>
     <span class="expcontainer">
         <span class="blue bold" id="exp"></span>
-        <span class="progress-bar">
+        <span class="progress-bar boxshadow">
             <span class="progress" id="progress"></span>
         </span>
     </span>
@@ -10,6 +10,7 @@
 
 <style>
 .levelcontainer {
+    font-family: "Rajdhani";
     display: flex;
     align-items: start;
 }
@@ -21,7 +22,6 @@ span.level {
     height: 80px;
     text-align: center;
     text-shadow: 3px 3px 1px rgba(var(--blue), 0.6), 6px 6px 1px rgba(var(--blue), 0.3);
-    box-shadow: 3px 3px 1px rgba(var(--blue), 0.6), 6px 6px 1px rgba(var(--blue), 0.3);
 }
 .progress-bar {
     position: relative;
@@ -29,7 +29,6 @@ span.level {
     width: 400px;
     height: 18px;
     background-color: rgb(var(--darkred));
-    box-shadow: 3px 3px 1px rgba(var(--darkred), 0.6), 6px 6px 1px rgba(var(--darkred), 0.3);
 }
 .progress {
     position:absolute;
