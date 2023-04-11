@@ -14,9 +14,8 @@ apiClient.asUser(botUserId, (ctx) => {
 	const listener = new EventSubWsListener({ apiClient: ctx });
 
 	listener.onChannelRaidTo(channelUserId, (ev) => {
-		console.log(ev);
-		const displayName = ev.raidingBroadcasterDisplayName();
-		const viewers = ev.viewers();
+		const displayName = ev.raidingBroadcasterDisplayName;
+		const viewers = ev.viewers;
 
 		PubSub.publish('notifications', {type: 'raid', user: displayName, amount: viewers});
 		PubSub.publish('LEVEL!EXP', 10 * viewers);
