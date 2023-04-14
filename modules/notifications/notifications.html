@@ -3,7 +3,7 @@
     let playing = false;
     let index = 0;
     let alertTemplates = {};
-    const vars = ['text', 'user', 'amount'];
+    const vars = ['text', 'ttsText', 'user', 'amount', 'userTo'];
 
     fetch ('./alerts/alerts.json').then(res => res.json()).then((templates) => {
         alertTemplates = templates;
@@ -77,7 +77,6 @@
     }
 
     function hideElement(style) {
-        
         var snackbar = document.getElementById("snackbar");
         snackbar.className = snackbar.className.replace(style, "hide");
         playing = false;
@@ -106,17 +105,16 @@
 
     function showNotification(item) {
         playing = true;
-        const alertTemplate = alertTemplates[item.type] || {
-            html: '<div>New alert</div>',
-            style: 'show'
-        };
-
+        const alertTemplate = alertTemplates[item.type];
         
-        let html = vars.reduce((text, v) => text.replace('#{' + v + '}', item[v] || alertTemplate[v]), alertTemplate.html);
+        let html = vars.reduce((text, v) => { 
+            return text.replace('#{' + v + '}', (v === "user" && alertTemplates.textAlias) ? (alertTemplates.textAlias[item[v]] || item[v] || "") : (item[v] || alertTemplate[v] || ""));
+        }, alertTemplate.html);
+
         html = resolveUserHash(html, item.user);
 
         const ttsMessage = vars.reduce((text, v) => { 
-            return text.replace('#{' + v + '}', (v === "user" && alertTemplates.useralias) ? (alertTemplates.useralias[item[v]] || item[v]) : (item[v] || alertTemplate[v]));
+            return text.replace('#{' + v + '}', (v === "user" && alertTemplates.ttsAlias) ? (alertTemplates.ttsAlias[item[v]] || item[v] || "") : (item[v] || alertTemplate[v] || ""));
         }, alertTemplate.tts || "");
 
         if (alertTemplate.tts && getSetting('tts_on') === 'on') {
@@ -188,8 +186,8 @@
 .top {
   left: 50%;
   top: 20px; 
-  width: 300px;
-  margin-left: -150px;
+  width: 400px;
+  margin-left: -200px;
   text-align: center;
 }
 
