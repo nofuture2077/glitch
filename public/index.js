@@ -24,18 +24,36 @@ moduleNodes.forEach(mN => {
     });
 });
 
-const socket = new WebSocket("ws://" + window.location.host);
+function connect() {
+    const socket = new WebSocket("ws://" + window.location.host);
 
-socket.addEventListener('open', () => {
+    socket.addEventListener('open', () => {
+        console.log('Socket is now open.');
+        PubSub.subscribe("WS", (msg, data) => {
+            socket.send(JSON.stringify(data));
+        });
+    });
+
     socket.addEventListener('message', (event) => {
         const message = JSON.parse(event.data);
+        console.log('message', message);
         PubSub.publish('MSG!' + message.target, message);
     });
-
-    PubSub.subscribe("WS", (msg, data) => {
-        socket.send(JSON.stringify(data));
+    
+    socket.addEventListener("close", (e) => {
+        console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.message);
+        setTimeout(function() {
+          connect();
+        }, 1000);
     });
-});
+
+    socket.addEventListener("error", (e) => {
+        console.error('Socket encountered error: ', e.message, 'Closing socket');
+        socket.close();
+    });
+}
+
+connect();
 
 const hash = (str, seed = 0) => {
     let h1 = 0xdeadbeef ^ seed,
