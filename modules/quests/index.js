@@ -21,9 +21,32 @@ storage.init({
     });
 });
 
+function addQuestDirectly(msg, user) {
+    const parts = msg.split(" ");
+    if (parts.length === 0) {
+        return;
+    }
+    const expTest = parseInt(parts[0]);
 
-function addQuest(parts) {
-    if (parts.length < 4) return; // write message to chat?
+    const text = parts.slice(expTest ? 1 : 0).join(" ");
+
+    const newQuest = {
+        id: state.questId++,
+        exp: expTest || defaultExp,
+        name: text,
+        status: 'NEW',
+        user
+    };
+    state.quests.push(newQuest);
+    storage.setItem("state$quests", state);
+    PubSub.publish('WS', {target: "quests", data: state.quests, op: "NEW"});
+    PubSub.publish('PostChatMessage', 'Quest angenommen: (' + newQuest.id + ') ' + newQuest.name + ' (' + newQuest.exp + ' Exp)');
+    PubSub.publish('notifications', {type: 'quest#new', text: "Neue Quest: " + newQuest.name});
+}
+
+
+function addQuest(parts, user) {
+    if (parts.length < 2) return;
     const expTest = parseInt(parts[1]);
 
     const text = parts.slice(expTest ? 2 : 1).join(" ");
@@ -31,7 +54,8 @@ function addQuest(parts) {
         id: state.questId++,
         exp: expTest || defaultExp,
         name: text,
-        status: 'PROPOSED'
+        status: 'PROPOSED',
+        user
     };
 
     proposed.push(newQuest);
@@ -124,13 +148,13 @@ module.exports = function(options) {
             PubSub.publish('PostChatMessage', 'Schlage über den Chat Nebenquests vor. Quests geben Erfahrungspunkte und steigern das Streamer Level. !addquest Mach einen Kickflip');
             return;
         }
-        const cmd = data.parts[1];
+        const cmd = data.parts[1].toLowerCase()
 
-        if (cmd === "list" && (data.mod || data.broadcaster)) {
-            let quests = state.quests.map(q => q.id + " - " + q.name + " - " + q.status + " - " +q.exp + " Exp");
+        if ((cmd === "list" || cmd === "l") && (data.mod || data.broadcaster)) {
+            let quests = state.quests.map(q => q.id + " - " + q.user + " - " + q.name + " - " + q.status + " - " + q.exp + " Exp");
             return PubSub.publish('PostChatMessage', quests.join(" // "));
         }
-        if (cmd === "done" && (data.mod || data.broadcaster)) {
+        if ((cmd === "done" || cmd === "d") && (data.mod || data.broadcaster)) {
             return questStatus(data.parts, "DONE");
         }
         if (cmd === "abort" && (data.mod || data.broadcaster)) {
@@ -139,7 +163,7 @@ module.exports = function(options) {
         if (cmd === "active" && (data.mod || data.broadcaster)) {
             return questStatus(data.parts, "ACTIVE");
         }
-        if (cmd === "accept" && (data.mod || data.broadcaster)) {
+        if ((cmd === "accept" || cmd === "a") && (data.mod || data.broadcaster)) {
             return acceptQuest(data.parts);
         }
         if (cmd === "delete" && (data.mod || data.broadcaster)) {
@@ -151,12 +175,16 @@ module.exports = function(options) {
         if (cmd === "text" && (data.mod || data.broadcaster)) {
             return changeText(data.parts);
         }
-        return addQuest(data.parts);
+        return addQuest(data.parts, data.displayname);
     };
 
     PubSub.subscribe('MSG!quests', handleQuestMessage);
     PubSub.subscribe('MSG!quest', handleQuestMessage);
     PubSub.subscribe('MSG!addquest', handleQuestMessage);
+    PubSub.subscribe('MSG!q', handleQuestMessage);
+    PubSub.subscribe('MSG!Neue Quest', (msg, data) => {
+        addQuestDirectly(data.text, data.displayname);
+    });
 
     options.app.get('/modules/quests/list', (req, res) => {
         res.json(state.quests);

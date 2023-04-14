@@ -35,7 +35,7 @@
             i.classList = classMapping[quest.status];
             sp.appendChild(i);
             
-            li.append(quest.name);
+            li.append("#" + quest.id + " " + quest.name);
 
             ul.appendChild(li);
         });
