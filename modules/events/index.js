@@ -13,33 +13,27 @@ apiClient.asUser(botUserId, (ctx) => {
 
 	const listener = new EventSubWsListener({ apiClient: ctx });
 
+	listener.onStreamOnline(channelUserId, (ev) => {
+		console.log(ev);
+		PubSub.publish('PostChatMessage', ev.broadcasterDisplayName + ' ist jetzt live.');
+	});
+
 	listener.onChannelRaidTo(channelUserId, (ev) => {
 		const displayName = ev.raidingBroadcasterDisplayName;
 		const viewers = ev.viewers;
 
 		PubSub.publish('notifications', {type: 'raid', user: displayName, amount: viewers});
 		PubSub.publish('LEVEL!EXP', 10 * viewers);
+		PubSub.publish('PostChatMessage', '/announce ' + displayName + ' raidet mit ' + viewers + ' Viewern');
+		setTimeout(() => {
+			PubSub.publish('PostChatMessage', '/shoutout ' + ev.raidingBroadcasterName);
+		}, 10000);
 	});
 
 	listener.onChannelFollow(channelUserId, botUserId, e => {
 		PubSub.publish('notifications', {type: 'follow', user: e.userDisplayName});
 		PubSub.publish('LEVEL!EXP', 100);
-	});
-
-	listener.onChannelSubscription(channelUserId, (ev) => {
-		console.log(ev);
-	});
-
-	listener.onChannelSubscriptionGift(channelUserId, (ev) => {
-		console.log(ev);
-	});
-
-	listener.onChannelSubscriptionMessage(channelUserId, (ev) => {
-		console.log(ev);
-	});
-
-	listener.onChannelCheer(channelUserId, (ev) => {
-		console.log(ev);
+		PubSub.publish('PostChatMessage', e.userDisplayName + ' folgt jetzt');
 	});
 
 	listener.start();
