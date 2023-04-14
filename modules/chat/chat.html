@@ -4,15 +4,9 @@
     let channelBadges = {};
     let globalBadges = {};
 
-    function renderMessage(msg) {
-        let html = '<div class="message" id="message' + msg.id + '">';
-        const badges = Object.keys(msg.badges);
-        badges.forEach(badge => {
-            const url = channelBadges[badge] || globalBadges[badge]; 
-            html += '<img class="badge" src="' + url + '" />';
-        });
-        html += `<span style="color: ${msg.color};font-weight: 800;">${msg.displayname}:</span> `;
-        msg.parsedParts.forEach(part => {
+    function messageToHtml(parsedParts) {
+        let html = '';
+        parsedParts.forEach(part => {
             if (Array.isArray(part)) {
                 html += part.map(p => {
                     const sTV = sevenTVEmotes[p];
@@ -25,6 +19,18 @@
                 html += '<img src="' + part + '" />';
             }
         });
+        return html;
+    }
+
+    function renderMessage(msg) {
+        let html = '<div class="message" id="message' + msg.id + '">';
+        const badges = Object.keys(msg.badges);
+        badges.forEach(badge => {
+            const url = channelBadges[badge] || globalBadges[badge]; 
+            html += '<img class="badge" src="' + url + '" />';
+        });
+        html += `<span style="color: ${msg.color};font-weight: 800;">${msg.displayname}:</span> `;
+        html += messageToHtml(msg.parsedParts);
         html += '</div>';
         return html;
     };
@@ -54,7 +60,7 @@
             setTimeout(() => {
                 const msgDom = document.getElementById('message' + data.data.id);
                 if (msgDom) {
-                msgDom.remove();
+                    msgDom.remove();
                 }
             }, fade * 1000);
         }
