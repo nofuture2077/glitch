@@ -1,6 +1,7 @@
 const PubSub = require('pubsub-js');
 const storage = require('node-persist');
 var fs = require('fs');
+const { simpleText } = require('../../commons/parseMessage');
 
 let proposed = []
 
@@ -41,7 +42,7 @@ function addQuestDirectly(msg, user) {
     storage.setItem("state$quests", state);
     PubSub.publish('WS', {target: "quests", data: state.quests, op: "NEW"});
     PubSub.publish('PostChatMessage', 'Quest angenommen: (' + newQuest.id + ') ' + newQuest.name + ' (' + newQuest.exp + ' Exp)');
-    PubSub.publish('notifications', {type: 'quest#new', text: "Neue Quest: " + newQuest.name});
+    PubSub.publish('notifications', {type: 'quest#new', parsedParts: simpleText("Neue Quest: " + newQuest.name)});
 }
 
 
@@ -82,7 +83,7 @@ function acceptQuest(parts) {
         storage.setItem("state$quests", state);
         PubSub.publish('WS', {target: "quests", data: state.quests, op: "NEW"});
         PubSub.publish('PostChatMessage', 'Quest angenommen: (' + quest.id + ') ' + quest.name + ' (' + quest.exp + ' Exp)');
-        PubSub.publish('notifications', {type: 'quest#new', text: "Neue Quest: " + quest.name});
+        PubSub.publish('notifications', {type: 'quest#new', parsedParts: simpleText("Neue Quest: " + quest.name)});
     }
 }
 
@@ -93,12 +94,12 @@ function questStatus(parts, status) {
         if (q.id === id) {
             if (q.status !== 'DONE' && status === 'DONE') {
                 PubSub.publish('LEVEL!EXP', q.exp);
-                PubSub.publish('notifications', {type: 'quest#success', text: "Quest erfolgreich: " + q.name});
+                PubSub.publish('notifications', {type: 'quest#success', parsedParts: simpleText("Quest erfolgreich: " + q.name)});
                 setTimeout(() => PubSub.publish('ClipIt'), 5000);
             } else if (status === 'ABORT') {
-                PubSub.publish('notifications', {type: 'quest#failed', text: "Quest fehlgeschlagen: " + q.name});
+                PubSub.publish('notifications', {type: 'quest#failed', parsedParts: simpleText("Quest fehlgeschlagen: " + q.name)});
             } else {
-                PubSub.publish('notifications', {type: 'quest#update', text: "Quest aktiv: " + q.name});
+                PubSub.publish('notifications', {type: 'quest#update', parsedParts: simpleText("Quest aktiv: " + q.name)});
             }
             q.status = status;
             PubSub.publish('WS', {target: "quests", data: state.quests, op: "UPDATE"});

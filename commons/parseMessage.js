@@ -1,5 +1,14 @@
 const { parseChatMessage } = require('@twurple/common');
 
+const simpleText = (text) => {
+    return [{
+        type: 'text',
+        text,
+        ttsText: text,
+        parts: text.split(' ')
+    }]
+};
+
 const parse = (text, msg, cheerEmotes) => {
     const parts = parseChatMessage(text, msg.emoteOffsets, cheerEmotes.getPossibleNames());
     return parts.map(msgPart => {
@@ -29,5 +38,5 @@ const parse = (text, msg, cheerEmotes) => {
 }
 
 module.exports = {
-    parse
+    parse, simpleText
 }

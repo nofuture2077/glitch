@@ -7,8 +7,11 @@ module.exports = function(options) {
             type: 'cheer',
             user: "EinSebastian",
 			amount: 1,
-            text: "1 bit scam",
-            ttsText: "1 bit scam"
+            parseParts: [{
+                type: 'text',
+                text: '1 bit scam',
+                ttsText: '1 bit scam'
+            }]
         });
         res.end();
     });
@@ -36,8 +39,11 @@ module.exports = function(options) {
     options.app.get('/test/quest', (req, res) => {
         PubSub.publish('MSG!Neue Quest', {
             displayname: "EinSebastian",
-            text: "Mach einen Kickflip",
-            ttsText: "Mach einen Kickflip"
+            parseParts: [{
+                type: 'text',
+                text: '1 bit scam',
+                ttsText: '1 bit scam'
+            }]
         });
         res.end();
     });

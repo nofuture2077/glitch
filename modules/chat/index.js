@@ -37,6 +37,7 @@ const onMessage = (channel, user, text, msg) => {
     };
 
     const parsedParts = parse(text, msg, cheerEmotes);
+    data.parsedParts = parsedParts;
 
     if (text.indexOf('!tts') === 0) {
         parsedParts[0].parts = parsedParts[0].parts.slice(1);
@@ -73,7 +74,6 @@ const onMessage = (channel, user, text, msg) => {
 		PubSub.publish('PostChatMessage', msg.userInfo.displayName + ' gönnt ' + msg.bits + ' Bits.');
     }
 
-    data.parsedParts = parsedParts;
     PubSub.publish('WS', {target: 'chat', data: data, op: "NEW"})
 };
 
