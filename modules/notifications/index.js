@@ -1,5 +1,6 @@
 require('dotenv').config();
 const PubSub = require('pubsub-js');
+const storage = require('node-persist');
 var fs = require('fs');
 
 const state = {
@@ -9,39 +10,48 @@ const state = {
 
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 
+storage.init({
+    dir: './storage/'
+}).then(options => {
+    storage.getItem("state$notifications").then(notifications => {
+        if (notifications) {
+            state.id = notifications.id;
+            state.queue = notifications.queue;
+        }
+    });
+});
+
 module.exports = function(options) {
+
+    const trigger = (index) => {
+        const data = state.queue.find(x => x.id == index);
+        PubSub.publish('WS', {target: "notifications", data, op: "RETRIGGER"});
+    };
+
     PubSub.subscribe('notifications', (message, data) => {
         data.id = ++state.id;
         console.log(data);
         state.queue.push(data);
+        state.queue = state.queue.splice(-50, 50);
+        storage.setItem("state$notifications", state);
         PubSub.publish('WS', {target: "notifications", data, op: "NEW"});
     });
 
-    PubSub.subscribe('MSG!tts', (message, data) => {
-        const text = data.parts.slice(1).join(" ");
-        if (!text.trim()) return;
-        PubSub.publish('notifications', {
-            type: 'tts',
-            user: data.displayname,
-            text: data.parts.slice(1).join(" "),
-            ttsText: data.parts.slice(1).join(" ")
-        });
+    options.app.get('/notifications/queue', (req, res) => {
+        res.json([...state.queue].reverse());
     });
 
-    options.app.get('/queue', (req, res) => {
-        res.json(state.queue);
-    });
-
-    options.app.get('/trigger/:id', (req, res) => {
-        const data = state.queue.find(x => x.id == req.params.id);
-        PubSub.publish('WS', {target: "notifications", data, op: "RETRIGGER"});
+    options.app.get('/notifications/trigger/:id', (req, res) => {
+        trigger(req.params.id);
         res.end();
     });
 
     
     var html = fs.readFileSync('./modules/notifications/notifications.html', 'utf8').replace('GOOGLE_API_KEY', GOOGLE_API_KEY);
+    var admin = fs.readFileSync('./modules/notifications/admin.html', 'utf8');
 
     return {
-        html
+        html,
+        admin
     }
 }

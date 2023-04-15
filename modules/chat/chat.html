@@ -4,33 +4,31 @@
     let channelBadges = {};
     let globalBadges = {};
 
-    function messageToHtml(parsedParts) {
-        let html = '';
-        parsedParts.forEach(part => {
-            if (Array.isArray(part)) {
-                html += part.map(p => {
+    function parsedPartsToHtml(parsedParts) {
+        return parsedParts.map(part => {
+            switch (part.type) {
+                case 'text': return part.parts.map(p => {
                     const sTV = sevenTVEmotes[p];
                     if (sTV) {
                         return '<img src="' + sTV + '" />'
                     }
-                    return p
+                    return p;
                 }).join(" ");
-            } else {
-                html += '<img src="' + part + '" />';
+                case 'emote': return '<img src="' + part.url + '" />';
+                case 'cheer': return '<img src="' + part.url + '" />';
             }
-        });
-        return html;
+        }).join(" ");
     }
 
     function renderMessage(msg) {
-        let html = '<div class="message" id="message' + msg.id + '">';
+        let html = '<div class="message boxshadow" id="message' + msg.id + '">';
         const badges = Object.keys(msg.badges);
         badges.forEach(badge => {
             const url = channelBadges[badge] || globalBadges[badge]; 
             html += '<img class="badge" src="' + url + '" />';
         });
         html += `<span style="color: ${msg.color};font-weight: 800;">${msg.displayname}:</span> `;
-        html += messageToHtml(msg.parsedParts);
+        html += parsedPartsToHtml(msg.parsedParts);
         html += '</div>';
         return html;
     };
@@ -76,7 +74,7 @@
         font-size: 20px;
         width: 550px;
         display: flex;
-        flex-direction: column-reverse;
+        flex-direction: column;
         position: absolute;
         bottom: 20px;
         left: 20px;
@@ -93,7 +91,8 @@
     }
 
     .message {
-        line-height: 80%;
-        padding: 4px 0;
+        padding: 6px 6px;
+        background-color: rgba(var(--blue), 0.6);
+        margin: 6px;
     }
 </style>

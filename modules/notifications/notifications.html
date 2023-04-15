@@ -14,6 +14,16 @@
 <div id="snackbar"></div>
 
 <script>
+    function parsedPartsToTTS(parsedParts) {
+        return parsedParts.map(part => {
+            switch (part.type) {
+                case 'text': return part.parts.join(" ");
+                case 'emote': return part.text;
+                case 'cheer': return '';
+            }
+        }).join(" ");
+    }
+
     var textToSpeech = function(text) {
         return new Promise((resolve, fail) => {
             const url = 'https://texttospeech.googleapis.com/v1/text:synthesize?key=GOOGLE_API_KEY'
@@ -46,9 +56,14 @@
 
     function type(i, t, ie, oe) {
         input = document.getElementById(ie).innerHTML;
-        document.getElementById(oe).innerHTML += input.charAt(i);
+        let c = input.charAt(i)
+        if (c === "<") {
+            const e = input.indexOf(">", i);
+            c = input.substr(i, e - i + 1);
+        }
+        document.getElementById(oe).innerHTML += c;
         setTimeout(function(){
-            ((i < input.length - 1) ? type(i+1, t, ie, oe) : false);
+            ((i < input.length - c.length) ? type(i+c.length, t, ie, oe) : false);
         }, t);
     }
 
@@ -106,6 +121,11 @@
     function showNotification(item) {
         playing = true;
         const alertTemplate = alertTemplates[item.type];
+        
+        if (item.parsedParts) {
+            item.text = parsedPartsToHtml(item.parsedParts);
+            item.ttsText = parsedPartsToTTS(item.parsedParts);
+        }
         
         let html = vars.reduce((text, v) => { 
             return text.replace('#{' + v + '}', (v === "user" && alertTemplates.textAlias) ? (alertTemplates.textAlias[item[v]] || item[v] || "") : (item[v] || alertTemplate[v] || ""));
@@ -235,7 +255,7 @@
     animation: fadeout  0.5s 0.5s;
 }
 
-#snackbar img {
+#snackbar .avatar {
   width: 100%
 }
 
@@ -277,5 +297,9 @@
     left: 0px;
     top: 310px;
     padding: 10px;
+}
+
+.ttstext img {
+    width: 28px;
 }
 </style>

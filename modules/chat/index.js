@@ -1,7 +1,9 @@
 require('dotenv').config();
 const { authProvider } = require('../../commons/twitchauth');
+const { parse } = require('../../commons/parseMessage');
 const { ChatClient } = require('@twurple/chat');
 const { ApiClient } = require('@twurple/api');
+ 
 const PubSub = require('pubsub-js');
 var fs = require('fs');
 
@@ -11,7 +13,12 @@ const channelId = process.env.CHANNELID;
 const chatClient = new ChatClient({ authProvider, channels: [channel] });
 const apiClient = new ApiClient({ authProvider });
 
-const subSteps = [1, 5, 10, 20, 50, 100]; 
+const subSteps = [1, 5, 10, 20, 50, 100];
+let cheerEmotes = null;
+
+apiClient.bits.getCheermotes(channelId).then(cE => {
+    cheerEmotes = cE;
+});
 
 const onMessage = (channel, user, text, msg) => {
     console.log("Message", JSON.stringify({channel, user, text, msg}))
@@ -29,6 +36,18 @@ const onMessage = (channel, user, text, msg) => {
         color: msg.userInfo.color
     };
 
+    const parsedParts = parse(text, msg, cheerEmotes);
+
+    if (text.indexOf('!tts') === 0) {
+        parsedParts[0].parts = parsedParts[0].parts.slice(1);
+        PubSub.publish('notifications', {
+            type: 'tts',
+            user: msg.userInfo.displayName,
+            parsedParts: parsedParts
+        });
+        return;
+    }
+
     const isCommand = text.indexOf('!') === 0;
     if (isCommand) {
         PubSub.publish('MSG' + parts[0], data);
@@ -43,28 +62,12 @@ const onMessage = (channel, user, text, msg) => {
         return;
     }
 
-    const msgParts = msg.parseEmotes();
-
-    const parsedParts = msgParts.map(msgPart => {
-        switch (msgPart.type) {
-            case 'text': return msgPart.text.split(" ")
-            case 'emote': return msgPart.displayInfo.getUrl({animationSettings: 'default', backgroundType: 'dark', size: '1.0'})
-        }
-    });
-
     if (msg.isCheer) {
-        const ttsMessage = msgParts.map(msgPart => {
-            switch (msgPart.type) {
-                case 'text': return msgPart.text
-                case 'emote': return msgPart.text
-            }
-        }).join(" ");
         PubSub.publish('notifications', {
             type: 'cheer',
             user: msg.userInfo.displayName,
 			amount: msg.bits,
-            text: text,
-			ttsText: ttsMessage
+            parsedParts
         });
 		PubSub.publish('LEVEL!EXP', msg.bits);
 		PubSub.publish('PostChatMessage', msg.userInfo.displayName + ' gönnt ' + msg.bits + ' Bits.');
@@ -86,12 +89,12 @@ const onSub = (channel, user, subInfo, msg) => {
 		PubSub.publish('LEVEL!EXP', 500);
 		PubSub.publish('PostChatMessage', user + ' ist jetzt auch dabei PogChamp');
     } else {
+        const parsedParts = parse(msg.message, msg, cheerEmotes);
         PubSub.publish('notifications', {
             type: 'submessage',
             user: user,
             amount: subInfo.months,
-            text: msg.message,
-            ttsText: msg.message
+            parsedParts
         });
         PubSub.publish('LEVEL!EXP', 500);
         PubSub.publish('PostChatMessage', user + ' ist schon ' + subInfo.months + ' Monate dabei.');
@@ -135,7 +138,6 @@ chatClient.onMessage(onMessage);
 chatClient.onSub(onSub);
 chatClient.onCommunitySub(onCommunitySub);
 chatClient.onSubGift(onSubGift);
-
 
 PubSub.subscribe('PostChatMessage', (msg, message) => {
     chatClient.say(channel, message);
