@@ -22,10 +22,11 @@
 
             const type = document.createElement('div');
             type.innerText = notification.type;
+            type.className = 'short'
             listItem.appendChild(type);
 
             const user = document.createElement('div');
-            user.innerText = notification.user;
+            user.innerText = notification.user || "";
             user.className = 'short';
             listItem.appendChild(user);
 

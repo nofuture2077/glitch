@@ -14,17 +14,13 @@
 
             const type = document.createElement('div');
             type.innerText = quest.status;
+            type.className = 'short';
             listItem.appendChild(type);
 
             const user = document.createElement('div');
             user.innerText = quest.name;
             user.className = 'short';
             listItem.appendChild(user);
-
-            const textN = document.createElement('div');
-            textN.innerText = quest.exp
-            textN.className = 'short';
-            listItem.appendChild(textN);
 
             const button = document.createElement('button');
             button.className = 'button action';
