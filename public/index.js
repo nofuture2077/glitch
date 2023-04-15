@@ -19,7 +19,10 @@ function setInnerHTML(elm, html) {
 const moduleNodes = document.querySelectorAll('[data-module]');
 moduleNodes.forEach(mN => {
     const moduleName = mN.getAttribute('data-module');
-    fetch('/modules/' + moduleName + "/html").then(res => res.text()).then(text => {
+    const parts = moduleName.split('#');
+    const name = parts[0];
+    const mode = parts.length > 1 ? parts[1] : 'html'
+    fetch('/modules/' + name + "/" + mode).then(res => res.text()).then(text => {
         setInnerHTML(mN, text);
     });
 });

@@ -32,10 +32,10 @@ wsServer.on('connection', socket => {
   });
 });
 
-app.get('/modules/:moduleName/html', (req, res) => {
+app.get('/modules/:moduleName/:mode', (req, res) => {
   const moduleName = req.params.moduleName;
   const module = modules[moduleName] || {};
-  res.send(module.html)
+  res.send(module[req.params.mode])
 })
 
 const server = app.listen(port, () => {

@@ -1,0 +1,70 @@
+<h1>Notification Admin</h1>
+<ul id="notificationList"></ul>
+<script>
+    function parsedPartsToText(parsedParts) {
+        return parsedParts.map(part => {
+            switch (part.type) {
+                case 'text': return part.parts.join(" ");
+                case 'emote': return part.text;
+                case 'cheer': return '';
+            }
+        }).join(" ");
+    }
+
+    function renderNotificationsList(notifications) {
+        const dom = document.getElementById('notificationList');
+        dom.innerHTML = '';
+
+        notifications.forEach(notification => {
+            const li = document.createElement('li');
+            dom.appendChild(li);
+
+            const span = document.createElement('span');
+            li.appendChild(span);
+
+            const text = notification.parsedParts ? parsedPartsToText(notification.parsedParts) : '';
+
+            span.innerHTML = notification.type + ' - ' + notification.user + ' - ' + text + '';
+
+            const button = document.createElement('button');
+            button.className = 'button action';
+            li.appendChild(button);
+
+            button.innerText = 'Trigger';
+            button.onclick = () => {
+                console.log('trigger ' + notification.id);
+                fetch('/notifications/trigger/' + notification.id);
+            };
+        });
+
+        
+    }
+
+    function load() {
+        console.log('load notification list');
+        fetch('/notifications/queue').then(res => res.json()).then(notifications => {
+            renderNotificationsList(notifications);
+        });
+    }
+
+    load();
+
+    PubSub.subscribe('MSG!notifications', (msg, data) => {
+        load();
+    });
+    
+</script>
+
+<style>
+    .button {
+        padding: 5px 10px;
+        margin: 0px 20px;
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    .action {
+        background: rgb(var(--red));
+        color: #fff;
+    }
+</style>
