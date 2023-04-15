@@ -30,7 +30,6 @@ module.exports = function(options) {
 
     PubSub.subscribe('notifications', (message, data) => {
         data.id = ++state.id;
-        console.log(data);
         state.queue.push(data);
         state.queue = state.queue.splice(-50, 50);
         storage.setItem("state$notifications", state);

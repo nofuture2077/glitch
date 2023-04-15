@@ -63,3 +63,47 @@ body {
 .textcap {
   text-transform: capitalize;
 }
+
+.button {
+  padding: 5px 10px;
+  margin: 0px 5px;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.action {
+  background: rgb(var(--red));
+  color: #fff;
+}
+
+.accept {
+  background: rgb(var(--green));
+  color: #fff;
+}
+
+.active {
+  background: rgb(var(--blue));
+  color: #fff;
+}
+
+
+.itemlistitem {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: space-between;
+  max-width: 600px;
+  align-items: center;
+  margin: 6px 0;
+}
+
+.itemlist {
+  display: flex;
+  flex-direction: column;
+}
+
+.short {
+  max-width: 25%;
+  overflow: hidden;
+  max-height: 24px;
+}

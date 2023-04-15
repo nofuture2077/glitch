@@ -45,7 +45,6 @@ function addQuestDirectly(msg, user) {
     PubSub.publish('notifications', {type: 'quest#new', parsedParts: simpleText("Neue Quest: " + newQuest.name)});
 }
 
-
 function addQuest(parts, user) {
     if (parts.length < 2) return;
     const expTest = parseInt(parts[1]);
@@ -61,6 +60,7 @@ function addQuest(parts, user) {
 
     proposed.push(newQuest);
     PubSub.publish('PostChatMessage', 'Neue Quest vorgeschlagen: (' + newQuest.id + ') ' + text + ' (' + newQuest.exp + ' Exp)');
+    PubSub.publish('WS', {target: "quests", data: state.quests, op: "NEW"});
 }
 
 function acceptQuest(parts) {
@@ -142,7 +142,6 @@ function clearQuests() {
 }
 
 module.exports = function(options) {
-    var data = fs.readFileSync('./modules/quests/quests.html', 'utf8');
 
     const handleQuestMessage = (msg, data) => {
         if (data.parts.length === 1) {
@@ -190,8 +189,32 @@ module.exports = function(options) {
     options.app.get('/modules/quests/list', (req, res) => {
         res.json(state.quests);
     });
+
+    options.app.get('/modules/quests/proposed', (req, res) => {
+        res.json(proposed);
+    });
+
+    options.app.get('/modules/quests/accept/:id', (req, res) => {
+        acceptQuest(['!quest', 'accept', req.params.id]);
+    });
+
+    options.app.get('/modules/quests/done/:id', (req, res) => {
+        questStatus(['!quest', 'done', req.params.id], 'DONE');
+    });
+
+    options.app.get('/modules/quests/abort/:id', (req, res) => {
+        questStatus(['!quest', 'abort', req.params.id], 'ABORT');
+    });
+
+    options.app.get('/modules/quests/delete/:id', (req, res) => {
+        deleteQuest(['!quest', 'delete', req.params.id]);
+    });
+
+    var html = fs.readFileSync('./modules/quests/quests.html', 'utf8');
+    var admin = fs.readFileSync('./modules/quests/admin.html', 'utf8');
     
     return {
-        'html': data
+        html,
+        admin
     };
- }
+}

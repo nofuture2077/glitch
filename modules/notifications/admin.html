@@ -1,5 +1,5 @@
-<h1>Notification Admin</h1>
-<ul id="notificationList"></ul>
+<h2>Notifications</h2>
+<div id="notificationList" class="itemlist"></div>
 <script>
     function parsedPartsToText(parsedParts) {
         return parsedParts.map(part => {
@@ -16,23 +16,30 @@
         dom.innerHTML = '';
 
         notifications.forEach(notification => {
-            const li = document.createElement('li');
-            dom.appendChild(li);
+            const listItem = document.createElement('list');
+            listItem.className = 'itemlistitem';
+            dom.append(listItem);
 
-            const span = document.createElement('span');
-            li.appendChild(span);
+            const type = document.createElement('div');
+            type.innerText = notification.type;
+            listItem.appendChild(type);
 
-            const text = notification.parsedParts ? parsedPartsToText(notification.parsedParts) : '';
+            const user = document.createElement('div');
+            user.innerText = notification.user;
+            user.className = 'short';
+            listItem.appendChild(user);
 
-            span.innerHTML = notification.type + ' - ' + notification.user + ' - ' + text + '';
+            const textN = document.createElement('div');
+            textN.innerText = notification.parsedParts ? parsedPartsToText(notification.parsedParts) : ''
+            textN.className = 'short';
+            listItem.appendChild(textN);
 
             const button = document.createElement('button');
-            button.className = 'button action';
-            li.appendChild(button);
+            button.className = 'button active';
+            listItem.appendChild(button);
 
             button.innerText = 'Trigger';
             button.onclick = () => {
-                console.log('trigger ' + notification.id);
                 fetch('/notifications/trigger/' + notification.id);
             };
         });
@@ -40,31 +47,16 @@
         
     }
 
-    function load() {
-        console.log('load notification list');
+    function loadNotificationsAdmin() {
         fetch('/notifications/queue').then(res => res.json()).then(notifications => {
             renderNotificationsList(notifications);
         });
     }
 
-    load();
+    loadNotificationsAdmin();
 
     PubSub.subscribe('MSG!notifications', (msg, data) => {
-        load();
+        loadNotificationsAdmin();
     });
     
 </script>
-
-<style>
-    .button {
-        padding: 5px 10px;
-        margin: 0px 20px;
-        font-size: 24px;
-        font-weight: bold;
-    }
-
-    .action {
-        background: rgb(var(--red));
-        color: #fff;
-    }
-</style>

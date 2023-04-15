@@ -1,0 +1,109 @@
+<h2>Active Quests</h2>
+<div id="activeQuests" class="itemlist"></div>
+<h2>Proposed Quests</h2>
+<div id="proposedQuests" class="itemlist"></div>
+<script>
+    function renderActiveList(quests) {
+        const dom = document.getElementById('activeQuests');
+        dom.innerHTML = '';
+
+        quests.forEach(quest => {
+            const listItem = document.createElement('list');
+            listItem.className = 'itemlistitem';
+            dom.append(listItem);
+
+            const type = document.createElement('div');
+            type.innerText = quest.status;
+            listItem.appendChild(type);
+
+            const user = document.createElement('div');
+            user.innerText = quest.name;
+            user.className = 'short';
+            listItem.appendChild(user);
+
+            const textN = document.createElement('div');
+            textN.innerText = quest.exp
+            textN.className = 'short';
+            listItem.appendChild(textN);
+
+            const button = document.createElement('button');
+            button.className = 'button action';
+            listItem.appendChild(button);
+
+            button.innerText = 'Abort';
+            button.onclick = () => {
+                fetch('/modules/quests/abort/' + quest.id);
+            };
+
+            const button2 = document.createElement('button');
+            button2.className = 'button accept';
+            listItem.appendChild(button2);
+
+            button2.innerText = 'Done';
+            button2.onclick = () => {
+                fetch('/modules/quests/done/' + quest.id);
+            };
+
+            const button3 = document.createElement('button');
+            button3.className = 'button action';
+            listItem.appendChild(button3);
+
+            button3.innerText = 'Delete';
+            button3.onclick = () => {
+                fetch('/modules/quests/delete/' + quest.id);
+            };
+        });
+    }
+
+    function renderProposedList(quests) {
+        const dom = document.getElementById('proposedQuests');
+        dom.innerHTML = '';
+
+        quests.forEach(quest => {
+            const listItem = document.createElement('list');
+            listItem.className = 'itemlistitem';
+            dom.append(listItem);
+
+            const type = document.createElement('div');
+            type.innerText = quest.status;
+            listItem.appendChild(type);
+
+            const user = document.createElement('div');
+            user.innerText = quest.name;
+            user.className = 'short';
+            listItem.appendChild(user);
+
+            const textN = document.createElement('div');
+            textN.innerText = quest.exp
+            textN.className = 'short';
+            listItem.appendChild(textN);
+
+            const button2 = document.createElement('button');
+            button2.className = 'button accept';
+            listItem.appendChild(button2);
+
+            button2.innerText = 'Accept';
+            button2.onclick = () => {
+                fetch('/modules/quests/accept/' + quest.id);
+            };
+        });
+    }
+
+    function loadQuestsAdmin() {
+        console.log('update');
+        fetch('/modules/quests/list').then(res => res.json()).then(quests => {
+            renderActiveList(quests);
+        });
+
+        fetch('/modules/quests/proposed').then(res => res.json()).then(quests => {
+            renderProposedList(quests);
+        });
+    }
+
+    loadQuestsAdmin();
+
+    PubSub.subscribe('MSG!quests', (msg, data) => {
+        loadQuestsAdmin();
+    });
+    
+</script>
