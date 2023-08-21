@@ -11,13 +11,15 @@ const api = new ApiClient({ authProvider });
 api.asUser(botUserId, (ctx) => {
     const createClip = () => {
         ctx.clips.createClip({ channel: channelId }).then((clipId) => {
-            ctx.clips.getClipById(clipId).then((clip) => {
-                if (clip) {
-                    PubSub.publish('PostChatMessage', 'Neuer Clip: ' + clip.url());
-                }
-            }, (error) => {
-                console.log(error)
-            });
+            setTimeout(() => {
+                ctx.clips.getClipById(clipId).then((clip) => {
+                    if (clip) {
+                        PubSub.publish('PostChatMessage', 'Neuer Clip: ' + clip.url);
+                    }
+                }, (error) => {
+                    console.log(error)
+                });
+            }, 15000);
         }, (error) => {
             console.log(error);
         });

@@ -1,0 +1,57 @@
+<div id="settingsNode"></div>
+
+<script>
+    function changeSetting(name, value) {
+        return fetch('./modules/settings/config?secret=' + getSecret(), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name,
+                value
+            })
+        });
+    }
+    function renderSettings(config, settings) {
+        console.log(config, settings);
+        const node = document.getElementById('settingsNode');
+        node.innerHTML = '';
+
+        config.forEach(c => {
+            const valueRaw = settings[c.name];
+            switch (c.type) {
+                case 'boolean': {
+                    const html = `<div class="setting"><label class="switch"><input type="checkbox" ${valueRaw === 'on' ? 'checked' : ''} id="setting_${c.name}"><span class="slider round"></span></label><span class="swlabel">${c.label}</span></div>`;
+                    node.innerHTML += html;
+                    setTimeout(() => {
+                        const node = document.getElementById(`setting_${c.name}`);
+                        node.addEventListener('change', (ev) => {
+                            changeSetting(c.name, ev.target.checked ? 'on' : 'off');
+                        });
+                    }, 1);
+                }
+            }
+        });
+    };
+
+    function loadSettingsConfig() {
+        return fetch('/modules/settings/config?secret=' + getSecret()).then(res => res.json());
+    }
+
+    function loadSettings() {
+        return fetch('/modules/settings/list?secret=' + getSecret()).then(res => res.json());
+    }
+
+    Promise.all([loadSettingsConfig(), loadSettings()]).then((result) => {renderSettings(result[0], result[1])});
+</script>
+<style>
+    .swlabel {
+        position: relative;
+        top: 5px;
+        left: 10px;
+    }
+    .setting {
+        margin: 10px 0;
+    }
+</style>

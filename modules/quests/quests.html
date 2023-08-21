@@ -48,7 +48,7 @@
         container.appendChild(div);
     }
 </script>
-<div class="quests textcap" id="quests">
+<div class="quests textcap hidden" id="quests">
 </div>
 <script>
     async function loadQuests() {
@@ -60,6 +60,24 @@
 
     PubSub.subscribe('MSG!quests', (msg, data) => {
         renderQuests(data.data);
+    });
+
+    function toggleQuestsVisibility(value) {
+        if (value === 'off') {
+            document.getElementById("quests").className += ' hidden';
+        } else if (value === 'on') {
+            document.getElementById("quests").className = document.getElementById("quests").className.replaceAll("hidden", "").trim();
+        }
+    }
+
+    PubSub.subscribe('MSG!settings', (msg, data) => {
+        if (data.data.key === 'show_quests') {
+            toggleQuestsVisibility(data.data.value);
+        }
+    });
+
+    PubSub.subscribe('MSG!settingsloaded', (msg, data) => {
+        toggleQuestsVisibility(getSetting('show_quests'));
     });
 </script>
 <style>

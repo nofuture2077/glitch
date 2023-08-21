@@ -11,7 +11,12 @@ const channel = process.env.CHANNEL;
 const channelId = process.env.CHANNELID;
 
 module.exports = function(options) {
-    const chatClient = new ChatClient({ authProvider, channels: [channel] });
+    const chatClient = new ChatClient({ 
+        authProvider, 
+        channels: [channel],
+        rejoinChannelsOnReconnect: true
+     });
+
     const apiClient = new ApiClient({ authProvider });
 
     const subSteps = [1, 5, 10, 20, 50, 100];
@@ -22,6 +27,7 @@ module.exports = function(options) {
     });
 
     const onMessage = (channel, user, text, msg) => {
+        //console.log(msg.rawLine);
         const parts = text.split(" ");
         const data = {
             text: text,
@@ -53,14 +59,14 @@ module.exports = function(options) {
 
         const isCommand = text.indexOf('!') === 0;
         if (isCommand) {
-            PubSub.publish('MSG' + parts[0], data);
+            PubSub.publish('MSG' + parts[0].toLowerCase(), data);
             return;
         }
 
         if (options.settings.getSetting('chat_reward') === 'on') {
             const isReward = msg.isRedemption;
             if (isReward) {
-                apiClient.channelPoints.getCustomRewardById(msg.rewardId).then((aw) => {
+                apiClient.channelPoints.getCustomRewardById(channelId, msg.rewardId).then((aw) => {
                     PubSub.publish('MSG!' + aw.title, data);
                 });
                 return;
@@ -76,6 +82,16 @@ module.exports = function(options) {
             });
             PubSub.publish('LEVEL!EXP', msg.bits);
             PubSub.publish('PostChatMessage', msg.userInfo.displayName + ' gönnt ' + msg.bits + ' Bits.');
+
+            if (msg.bits === parseInt(options.settings.getSetting('reroll_avatar'))) {
+                options.settings.setSetting('seed#' + msg.userInfo.displayName, Math.random());
+    
+                PubSub.publish('notifications', {
+                    type: 'reroll',
+                    user: msg.userInfo.displayName
+                });
+                return;
+            }
         }
 
         PubSub.publish('WS', {target: 'chat', data: data, op: "NEW"})
@@ -84,6 +100,7 @@ module.exports = function(options) {
     const giftCounts = new Map();
 
     const onSub = (channel, user, subInfo, msg) => {
+        console.log(msg.rawLine);
         console.log("Sub", JSON.stringify({channel, user, subInfo, msg}))
         if (subInfo.months === 1) {
             PubSub.publish('notifications', {
@@ -93,7 +110,7 @@ module.exports = function(options) {
             PubSub.publish('LEVEL!EXP', 500);
             PubSub.publish('PostChatMessage', user + ' ist jetzt auch dabei PogChamp');
         } else {
-            const parsedParts = parse(msg.message, msg, cheerEmotes);
+            const parsedParts = parse(msg.message ? msg.message.value : "", msg, cheerEmotes);
             PubSub.publish('notifications', {
                 type: 'submessage',
                 user: user,
@@ -105,9 +122,10 @@ module.exports = function(options) {
         }
     };
 
-    const onCommunitySub = (channel, user, subInfo) => {
+    const onCommunitySub = (channel, user, subInfo, msg) => {
+        console.log(msg.rawLine);
         console.log("CommunitySub", JSON.stringify({channel, user, subInfo}))
-        const userName = user || "Anonymous";
+        const userName = subInfo.gifterDisplayName || "Anonymous";
         const previousGiftCount = giftCounts.get(userName) ?? 0;
         giftCounts.set(userName, previousGiftCount + subInfo.count);
         const step = subSteps.findLast(x => x <= subInfo.count);
@@ -116,11 +134,12 @@ module.exports = function(options) {
             user: userName,
             amount: subInfo.count
         });
-        PubSub.publish('PostChatMessage', user + ' gönnt ' + subInfo.count + ' Abos PogChamp');
+        PubSub.publish('PostChatMessage', userName + ' gönnt ' + subInfo.count + ' Abos PogChamp');
         PubSub.publish('LEVEL!EXP', 500 * subInfo.count);
     };
 
-    const onSubGift = (channel, recipient, subInfo) => {
+    const onSubGift = (channel, recipient, subInfo, msg) => {
+        console.log(msg.rawLine);
         console.log("SubGift", JSON.stringify({channel, recipient, subInfo}))
         const user = subInfo.gifterDisplayName || "Anonymous";
         const previousGiftCount = giftCounts.get(user) ?? 0;
@@ -140,6 +159,7 @@ module.exports = function(options) {
 
     chatClient.onMessage(onMessage);
     chatClient.onSub(onSub);
+    chatClient.onResub(onSub);
     chatClient.onCommunitySub(onCommunitySub);
     chatClient.onSubGift(onSubGift);
 

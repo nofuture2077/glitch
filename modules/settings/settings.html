@@ -6,6 +6,8 @@
     }
     loadSettings().then(settings => {
         SETTINGS = {...settings};
+
+        PubSub.publish('MSG!settingsloaded', SETTINGS);
     });
 
     getSetting = (key) => SETTINGS[key]; 

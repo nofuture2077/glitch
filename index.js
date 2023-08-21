@@ -3,6 +3,8 @@ const ws = require('ws');
 const app = express();
 const PubSub = require('pubsub-js');
 
+app.use(express.json());
+
 const settings = require('./modules/settings')({app: app});
 
 const modules = {
@@ -13,6 +15,10 @@ const modules = {
   quests: require('./modules/quests')({app: app, settings: settings}),
   level: require('./modules/level')({app: app, settings: settings}),
   notifications: require('./modules/notifications')({app: app, settings: settings}),
+  chatbot: require('./modules/chatbot')({app: app, settings: settings}),
+  activity: require('./modules/activity')({app: app, settings: settings}),
+  wahoo: require('./modules/wahoo')({app: app, settings: settings}),
+  heartrate: require('./modules/heartrate')({app: app, settings: settings}),
   chat: require('./modules/chat')({app: app, settings: settings})
 }
 

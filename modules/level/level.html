@@ -1,4 +1,4 @@
-<div class="levelcontainer" id="levelcontainer">
+<div class="levelcontainer hidden" id="levelcontainer">
     <span class="level blue blueborder boxshadow" id="level"></span>
     <span class="expcontainer">
         <span class="blue bold" id="exp"></span>
@@ -13,6 +13,9 @@
     font-family: "Rajdhani";
     display: flex;
     align-items: start;
+    position: absolute;
+    left: 20px;
+    top: 20px;
 }
 span.level {
     font-size: 64px;
@@ -59,5 +62,23 @@ span.level {
 
     PubSub.subscribe('MSG!level', (msg, data) => {
         renderLevel(data.data);
+    });
+
+    function toggleLevelVisibility(value) {
+        if (value === 'off') {
+            document.getElementById("levelcontainer").className += ' hidden';
+        } else if (value === 'on') {
+            document.getElementById("levelcontainer").className = document.getElementById("levelcontainer").className.replaceAll("hidden", "").trim();
+        }
+    }
+
+    PubSub.subscribe('MSG!settings', (msg, data) => {
+        if (data.data.key === 'show_level') {
+            toggleLevelVisibility(data.data.value);
+        }
+    });
+
+    PubSub.subscribe('MSG!settingsloaded', (msg, data) => {
+        toggleLevelVisibility(getSetting('show_level'));
     });
 </script>

@@ -1,0 +1,73 @@
+<div id="chatbotdata">
+    <div id="chatbotdataentries">
+
+    </div>
+    <div>
+        <button id="chatBotBtn" onclick="createChatBotData()" class="button accept"><i class="fa-solid fa-plus"></i></button>
+        <label for="chatbotdataname">Name:</label>
+        <input id="chatbotdataname" name="chatbotdataname" type="text" /><br>
+        <label for="chatbotdatatext">Text:</label>
+        <input id="chatbotdatatext" name="text" type="text" size="50" /><br>
+        <label for="chatbotdatainterval">Interval:</label>
+        <input id="chatbotdatainterval" name="chatbotdatainterval" type="number" />
+    </div>
+</div>
+
+<script>
+
+    function deleteChatbotData(id) {
+        fetch('./modules/chatbot/delete/' + id+'?secret=' + getSecret(), {method: 'DELETE'}).then(res => res.text()).then(() => {
+            loadChatBotList();
+        });
+    }
+
+    function createChatBotData() {
+        fetch('./modules/chatbot/create?secret=' + getSecret(), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: document.getElementById('chatbotdataname').value,
+                text: document.getElementById('chatbotdatatext').value,
+                interval: parseInt(document.getElementById('chatbotdatainterval').value)
+            })
+        }).then(() => {
+            loadChatBotList();
+        });
+    }
+    function renderChatBotList(chatbotdata) {
+        const node = document.getElementById('chatbotdataentries');
+        node.innerHTML = '';
+        chatbotdata.forEach(element => {
+            node.innerHTML += `<div><b>${element.name}</b><button data-id="${element.id}" class="button action chatbotbtn"><i class="fa-solid fa-trash"></i></button><span class="interval">Interval: ${element.interval}</span><br/><span>${element.text}</span></div>`;
+            const selector = `.chatbotbtn[data-id="${element.id}"]`;
+            const btn = document.querySelector(selector);
+            btn.onclick = (() => {
+                deleteChatbotData(element.id);
+            });
+        });
+    }
+
+    function loadChatBotList() {
+        fetch('./modules/chatbot/list?secret=' + getSecret()).then(res => res.json()).then(chatbotdata => {
+            renderChatBotList(chatbotdata);
+        });
+    }
+
+    loadChatBotList();
+</script>
+<style>
+    #chatbotdata {
+        width: 600px
+    }
+    #chatbotdata > div, #chatbotdataentries > div {
+        background-color: rgba(255, 255, 255, 0.2);
+        margin: 5px 0px;
+        padding: 5px;
+    }
+
+    .interval, #chatbotdata button {
+        float: right;
+    }
+</style>

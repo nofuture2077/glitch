@@ -1,6 +1,24 @@
-<h2>Notifications</h2>
-<div id="notificationList" class="itemlist"></div>
+<div id="notificationList"></div>
 <script>
+
+    const sub = {
+        'reroll' : '<i class="fa-solid fa-skull"></i>',
+        'follow' : '<i class="fa-solid fa-star"></i>',
+        'cheer' : '<i class="fa-solid fa-donate"></i>',
+        'quest#new' : '<i class="fa-solid fa-question"></i>',
+        'quest#failed' : '<i class="fa-solid fa-question"></i>',
+        'quest#success' : '<i class="fa-solid fa-question"></i>',
+        'quest#update' : '<i class="fa-solid fa-question"></i>',
+        'tts' : '<i class="fa-solid fa-bullhorn"></i>',
+        'sub' : '<i class="fa-solid fa-gift"></i>',
+        'submessage' : '<i class="fa-solid fa-gift"></i>',
+        'subgift1' : '<i class="fa-solid fa-gift"></i>',
+        'subgift5' : '<i class="fa-solid fa-gift"></i>',
+        'subgift10' : '<i class="fa-solid fa-gift"></i>',
+        'subgift20' : '<i class="fa-solid fa-gift"></i>',
+        'subgift50' : '<i class="fa-solid fa-gift"></i>',
+        'subgift100' : '<i class="fa-solid fa-gift"></i>'
+    }
     function parsedPartsToText(parsedParts) {
         return parsedParts.map(part => {
             switch (part.type) {
@@ -16,40 +34,21 @@
         dom.innerHTML = '';
 
         notifications.forEach(notification => {
-            const listItem = document.createElement('list');
-            listItem.className = 'itemlistitem';
-            dom.append(listItem);
+            dom.innerHTML += `<div><button class="button active notificationsbtn" data-id="${notification.id}"><i class="fa-solid fa-rotate"></i></button>${sub[notification.type] || notification.type}<b>&nbsp;${notification.amount || ''}&nbsp;${notification.user || ""}<b><br>${notification.parsedParts ? parsedPartsToText(notification.parsedParts) : ''}</div>`;
+            const selector = `.notificationsbtn[data-id="${notification.id}"]`;
 
-            const type = document.createElement('div');
-            type.innerText = notification.type;
-            type.className = 'short'
-            listItem.appendChild(type);
-
-            const user = document.createElement('div');
-            user.innerText = notification.user || "";
-            user.className = 'short';
-            listItem.appendChild(user);
-
-            const textN = document.createElement('div');
-            textN.innerText = notification.parsedParts ? parsedPartsToText(notification.parsedParts) : ''
-            textN.className = 'short';
-            listItem.appendChild(textN);
-
-            const button = document.createElement('button');
-            button.className = 'button active';
-            listItem.appendChild(button);
-
-            button.innerText = 'Trigger';
-            button.onclick = () => {
-                fetch('/notifications/trigger/' + notification.id);
-            };
+            setTimeout(() => {
+                const btn = document.querySelector(selector);
+                btn.onclick = (() => {
+                    console.log(notification.id);
+                    fetch('/notifications/trigger/' + notification.id+ "?secret=" +getSecret());
+                });
+            }, 1);
         });
-
-        
     }
 
     function loadNotificationsAdmin() {
-        fetch('/notifications/queue').then(res => res.json()).then(notifications => {
+        fetch('/notifications/queue?secret=' + getSecret()).then(res => res.json()).then(notifications => {
             renderNotificationsList(notifications);
         });
     }
@@ -61,3 +60,19 @@
     });
     
 </script>
+<style>
+    #notificationList button {
+        float:right
+    }
+
+    #notificationList {
+        width: 600px
+    }
+
+    #notificationList > div {
+        background-color: rgba(255, 255, 255, 0.2);
+        margin: 5px 0px;
+        padding: 5px;
+        min-height: 40px;
+    }
+</style>

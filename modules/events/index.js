@@ -14,8 +14,13 @@ apiClient.asUser(botUserId, (ctx) => {
 	const listener = new EventSubWsListener({ apiClient: ctx });
 
 	listener.onStreamOnline(channelUserId, (ev) => {
-		console.log(ev);
-		PubSub.publish('PostChatMessage', ev.broadcasterDisplayName + ' ist jetzt live.');
+		PubSub.publish('PostChatMessage', ev.broadcasterDisplayName + ' ist jetzt live. peepoHey');
+		PubSub.publish('ChannelOnline');
+	});
+
+	listener.onStreamOffline(channelUserId, (ev) => {
+		PubSub.publish('PostChatMessage', ev.broadcasterDisplayName + ' ist jetzt offline. peepoBye');
+		PubSub.publish('ChannelOffline');
 	});
 
 	listener.onChannelRaidTo(channelUserId, (ev) => {
@@ -40,5 +45,6 @@ apiClient.asUser(botUserId, (ctx) => {
 });
 
 
-module.exports = function(options) {}
+module.exports = function(options) {
+}
 

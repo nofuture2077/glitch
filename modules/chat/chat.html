@@ -1,4 +1,4 @@
-<div id="chat" class="white"></div>
+<div id="chat" class="white hidden"></div>
 <script>
     let sevenTVEmotes = {};
     let channelBadges = {};
@@ -50,7 +50,7 @@
     PubSub.subscribe('MSG!chat', (msg, data) => {
         if (getSetting('chat_on') === 'on') {
             const html = renderMessage(data.data);
-            chatNode.innerHTML += html;
+            chatNode.innerHTML = html + chatNode.innerHTML;
         }
 
         const fade = Number(getSetting('chat_fade'));
@@ -64,17 +64,35 @@
         }
 
         if (chatNode.children.length > 5) {
-            chatNode.children[0].remove();
+            chatNode.children[5].remove();
         }
+    });
+
+    function toggleChatVisibility(value) {
+        if (value === 'off') {
+            document.getElementById("chat").className += ' hidden';
+        } else if (value === 'on') {
+            document.getElementById("chat").className = document.getElementById("chat").className.replaceAll("hidden", "").trim();
+        }
+    }
+
+    PubSub.subscribe('MSG!settings', (msg, data) => {
+        if (data.data.key === 'show_chat') {
+            toggleChatVisibility(data.data.value);
+        }
+    });
+
+    PubSub.subscribe('MSG!settingsloaded', (msg, data) => {
+        toggleChatVisibility(getSetting('show_chat'));
     });
 </script>
 
 <style>
     #chat {
         font-size: 20px;
-        width: 550px;
+        width: 560px;
         display: flex;
-        flex-direction: column;
+        flex-direction: column-reverse;
         position: absolute;
         bottom: 20px;
         left: 20px;

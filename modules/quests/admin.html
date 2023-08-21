@@ -1,4 +1,3 @@
-<h2>Active Quests</h2>
 <div id="activeQuests" class="itemlist"></div>
 <h2>Proposed Quests</h2>
 <div id="proposedQuests" class="itemlist"></div>
@@ -26,7 +25,7 @@
             button.className = 'button action';
             listItem.appendChild(button);
 
-            button.innerText = 'Abort';
+            button.innerHTML = '<i class="fa-solid fa-window-close"></i></button>';
             button.onclick = () => {
                 fetch('/modules/quests/abort/' + quest.id);
             };
@@ -35,16 +34,16 @@
             button2.className = 'button accept';
             listItem.appendChild(button2);
 
-            button2.innerText = 'Done';
+            button2.innerHTML = '<i class="fa-solid fa-check"></i></button>';
             button2.onclick = () => {
                 fetch('/modules/quests/done/' + quest.id);
             };
 
             const button3 = document.createElement('button');
-            button3.className = 'button action';
+            button3.className = 'button active';
             listItem.appendChild(button3);
 
-            button3.innerText = 'Delete';
+            button3.innerHTML = '<i class="fa-solid fa-trash"></i></button>';
             button3.onclick = () => {
                 fetch('/modules/quests/delete/' + quest.id);
             };
@@ -78,7 +77,7 @@
             button2.className = 'button accept';
             listItem.appendChild(button2);
 
-            button2.innerText = 'Accept';
+            button2.innerHTML = '<i class="fa-solid fa-check"></i></button>';
             button2.onclick = () => {
                 fetch('/modules/quests/accept/' + quest.id);
             };
@@ -86,7 +85,6 @@
     }
 
     function loadQuestsAdmin() {
-        console.log('update');
         fetch('/modules/quests/list').then(res => res.json()).then(quests => {
             renderActiveList(quests);
         });

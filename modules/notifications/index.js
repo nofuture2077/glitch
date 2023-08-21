@@ -30,6 +30,7 @@ module.exports = function(options) {
 
     PubSub.subscribe('notifications', (message, data) => {
         data.id = ++state.id;
+        data.date = new Date().getTime();
         state.queue.push(data);
         state.queue = state.queue.splice(-50, 50);
         storage.setItem("state$notifications", state);
@@ -37,10 +38,16 @@ module.exports = function(options) {
     });
 
     options.app.get('/notifications/queue', (req, res) => {
+        if (process.env.SECRET !== req.query.secret) {
+            return res.status(401).send('No access');
+        }
         res.json([...state.queue].reverse());
     });
 
     options.app.get('/notifications/trigger/:id', (req, res) => {
+        if (process.env.SECRET !== req.query.secret) {
+            return res.status(401).send('No access');
+        }
         trigger(req.params.id);
         res.end();
     });

@@ -1,0 +1,74 @@
+<div id="activitycontainer" class="activitycontainer action blue boxshadow hidden">
+    <span id="activitySpeed"></span><span> - </span>
+    <span id="activityDistance"></span><span> - </span>
+    <span id="activityTime"></span><span> - </span>
+    <span id="activityTotalDistance"></span>
+</div>
+<script>
+
+    function formatTime(seconds, postfix) {
+        var date = new Date(seconds * 1000); // Convert seconds to milliseconds
+
+        var hours = date.getUTCHours();
+        var minutes = date.getUTCMinutes();
+        var remainingSeconds = date.getUTCSeconds();
+
+        var formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}${postfix}`;
+
+        return formattedTime;
+    }
+
+    let activityTimeInterval;
+
+    function renderActivity (data) {
+        if (activityTimeInterval) {
+            clearInterval(activityTimeInterval);
+        }
+        
+        let time = (data.goal.time ? (data.goal.time - data.activity.time) : data.activity.time) || 0;
+        const speed = data.activity.speed;
+        const distance = data.goal.distance ? (data.goal.distance - data.activity.distance) : data.activity.distance;
+        const totalDistance = data.goal.totalDistance ?  (data.goal.totalDistance - (data.total.distance + data.activity.distance)) : (data.total.distance + data.activity.distance);
+        const totalText = data.goal.totalDistance ? 'Left: ' : 'Total: ';
+        document.getElementById('activitySpeed').innerText = new Intl.NumberFormat('de-DE', { style: 'unit', unit: 'kilometer-per-hour', minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(speed);
+        document.getElementById('activityDistance').innerText = new Intl.NumberFormat('de-DE', { style: 'unit', unit: 'kilometer', minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(distance);
+        document.getElementById('activityTime').innerText = formatTime(time, '');
+        if (!data.activity.stopped) {
+            activityTimeInterval = setInterval(() => {
+                document.getElementById('activityTime').innerText = formatTime(++time, '');
+            }, 1000);
+        }
+        document.getElementById('activityTotalDistance').innerText = totalText + new Intl.NumberFormat('de-DE', { style: 'unit', unit: 'kilometer', minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(totalDistance);
+    }
+
+    PubSub.subscribe('MSG!activity', (msg, data) => {
+        renderActivity(data.data);
+
+        toggleActivityVisibility(getSetting('show_activity'));
+    });
+
+    function toggleActivityVisibility(value) {
+        if (value === 'off') {
+            document.getElementById("activitycontainer").className += ' hidden';
+        } else if (value === 'on') {
+            document.getElementById("activitycontainer").className = document.getElementById("activitycontainer").className.replaceAll("hidden", "").trim();
+        }
+    }
+
+    PubSub.subscribe('MSG!settings', (msg, data) => {
+        if (data.data.key === 'show_activity') {
+            toggleActivityVisibility(data.data.value);
+        }
+    });
+</script>
+<style>
+.activitycontainer {
+    position: absolute;
+    right: 20px;
+    top: 40px;
+
+    font-weight: bold;
+    font-size: 24px;
+    padding: 10px;
+}
+</style>

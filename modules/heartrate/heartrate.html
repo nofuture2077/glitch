@@ -1,0 +1,84 @@
+<style>
+#heart-container {
+    position: absolute;
+    right: 20px;
+    top: 120px;
+    display:flex;
+    align-items: center;
+    text-shadow: 1px 1px 0px rgba(var(--blue), 0.5),-1px -1px 0px rgba(var(--red), 0.5);
+}
+
+#heart {
+    font-size: 64px;
+    margin: 0 20px;
+}
+
+#pulse {
+    font-size: 36px;
+    font-weight: bold;
+    margin: 0 20px;
+}
+
+@keyframes pulse {
+    0% {
+    transform: scale(1);
+    opacity: 0.8;
+    }
+    50% {
+    transform: scale(1.1);
+    opacity: 1.0;
+    }
+    100% {
+    transform: scale(1);
+    opacity: 0.8;
+    }
+}
+</style>
+<style type="text/css" id="updatePulse"></style>
+<div id="heart-container" class="hidden">
+    <i id="heart" class="fas fa-heart"></i>
+    <p id="pulse"></p>
+</div>
+
+<script>
+const pulseRanges = [0, 100, 130, 165, 1000];
+const pulseColor = ['rgb(var(--blue))', 'rgb(var(--green))', 'rgb(var(--yellow))', 'rgb(var(--red))'];
+
+function setPulse(pulse) {
+    var pulseElement = document.getElementById('heart-container');
+    const colorIndex = pulseRanges.findLastIndex(x => x <= pulse);
+    pulseElement.style.color = pulseColor[colorIndex];
+    setAnimationDuration(pulse);
+
+    document.getElementById("pulse").innerHTML = pulse;
+}
+
+function setAnimationDuration(pulse) {
+    var duration = 60 / pulse;
+
+    var styleTag = document.getElementById('updatePulse')
+    styleTag.innerHTML = '#heart, #pulse { animation: pulse ' + duration + 's infinite; }';
+}
+
+function toggleHeartrateVisibility(value) {
+    if (value === 'off') {
+        document.getElementById("heart-container").className += ' hidden';
+    } else if (value === 'on') {
+        document.getElementById("heart-container").className = document.getElementById("heart-container").className.replaceAll("hidden", "").trim();
+    }
+}
+
+PubSub.subscribe('MSG!heartrate', (msg, data) => {
+    setPulse(data.data.pulse);
+
+    toggleHeartrateVisibility(getSetting('show_heartrate'));
+});
+
+PubSub.subscribe('MSG!settings', (msg, data) => {
+    if (data.data.key === 'show_heartrate') {
+        toggleHeartrateVisibility(data.data.value);
+    }
+});
+
+setPulse(80);
+</script>

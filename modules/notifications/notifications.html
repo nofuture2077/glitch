@@ -3,10 +3,22 @@
     let playing = false;
     let index = 0;
     let alertTemplates = {};
-    const vars = ['text', 'ttsText', 'user', 'amount', 'userTo'];
+    const vars = ['text', 'ttsText', 'user', 'amount', 'userTo', 'levelName', 'levelIndex', 'levelTTS'];
+    const levelMap = {};
+    const levels = [];
+    const levelOrig = [];
 
     fetch ('./alerts/alerts.json').then(res => res.json()).then((templates) => {
         alertTemplates = templates;
+
+        templates.level && templates.level.forEach(l => {
+            levelOrig.push(l);
+            if (l.values) {
+                l.values.forEach(v => levelMap[v] = l.name);
+            } else if (l.mod) {
+                levels.push(l);
+            }
+        });
     }, () => {
         console.warn('Could not load alerts. Place them in public/alerts/');
     })
@@ -29,7 +41,7 @@
             const url = 'https://texttospeech.googleapis.com/v1/text:synthesize?key=GOOGLE_API_KEY'
             const data = {
             'input':{
-                'text': text
+                'text': text || ""
             },
             'voice':{
                 'languageCode':'de-de',
@@ -80,9 +92,17 @@
         };
     }
 
-    function playTTS(msg, startCB, endCB, minDuration) {
+    function playTTS(msg, startCB, endCB, minDuration, volume) {
+        if (!msg) {
+            console.log("no message");
+            endCB && setTimeout(endCB, minDuration || 0);
+            return;
+        }
         textToSpeech(msg).then(audioContent => {
-            playAudio('data:audio/mp3;base64,' + audioContent, startCB, endCB, minDuration, 1.0)
+            playAudio('data:audio/mp3;base64,' + audioContent, startCB, endCB, minDuration, volume)
+        }, e => {
+            console.error(e);
+            endCB && setTimeout(endCB, Math.max(duration * 1000, minDuration || 0));
         });
     }
 
@@ -104,19 +124,24 @@
         }
     }
 
-    function resolveUserHash(html, user) {
-        let numMatches = html.match(/#{userhash-(\d+)-(\d)}/);
+    function userHash(user) {
+        return hash(user + (getSetting('seed#' + user) || ''));
+    }
 
+    function resolveUserHash(alertTemplate, item, user) {
+        if (!alertTemplate || !alertTemplate.hash) return;
+        let numMatches = alertTemplate.hash.match(/#{userhash-(\d+)-(\d)}/);
+        
         if (numMatches) {
             let num = parseInt(numMatches[1], 10);
-            let randomNum = hash(user) % num;
-            
+            let randomNum = userHash(user) % num;
+
+            const level = levelMap[randomNum] || levels.find(l => randomNum % l.mod === 0).name || "";
             let index = ("0000000000000000000" + randomNum).substr(-numMatches[2],numMatches[2]);
-
-            return html.replace(/#{userhash-\d+-\d}/g, index);
+            item.levelIndex = index;
+            item.levelName = level;
+            item.levelTTS = levelOrig.find(l => l.name === level).tts;
         }
-
-        return html;
     }
 
     function showNotification(item) {
@@ -127,38 +152,44 @@
             item.text = parsedPartsToHtml(item.parsedParts);
             item.ttsText = parsedPartsToTTS(item.parsedParts);
         }
+
+        resolveUserHash(alertTemplate, item, item.user);
+
+        let style = vars.reduce((text, v) => { 
+            return text.replace('#{' + v + '}', (v === "user" && alertTemplates.textAlias) ? (alertTemplates.textAlias[item[v]] || item[v] || "") : (item[v] || alertTemplate[v] || ""));
+        }, alertTemplate.style);
         
         let html = vars.reduce((text, v) => { 
             return text.replace('#{' + v + '}', (v === "user" && alertTemplates.textAlias) ? (alertTemplates.textAlias[item[v]] || item[v] || "") : (item[v] || alertTemplate[v] || ""));
         }, alertTemplate.html);
 
-        html = resolveUserHash(html, item.user);
-
-        const ttsMessage = vars.reduce((text, v) => { 
+        const ttsMessage = alertTemplates.alias.reduce((text, alias) => {
+            const re = new RegExp(alias.regex, "gi");
+            return text.replaceAll(re, alias.replace);
+        }, vars.reduce((text, v) => { 
             return text.replace('#{' + v + '}', (v === "user" && alertTemplates.ttsAlias) ? (alertTemplates.ttsAlias[item[v]] || item[v] || "") : (item[v] || alertTemplate[v] || ""));
-        }, alertTemplate.tts || "");
+        }, alertTemplate.tts || "")).toLowerCase();
 
-        if (alertTemplate.tts && getSetting('tts_on') === 'on') {
+        if (alertTemplate.tts) {
             playAudio(alertTemplate.audio, 
-                () => showElement(html, alertTemplate.style), 
+                () => showElement(html, style), 
                 () => playTTS(ttsMessage, 
                     () => startTypingEffect(alertTemplate.typing), 
-                    () => hideElement(alertTemplate.style),
+                    () => hideElement(style),
                     7000),
-                0, 0.6
+                0, 0.8
                 );
-
         } else if (alertTemplate.audio) {
             playAudio(alertTemplate.audio, 
-                () => showElement(html, alertTemplate.style) && startTypingEffect(alertTemplate.typing), 
-                () => hideElement(alertTemplate.style), 
-                5000, 0.6
+                () => showElement(html, style) && startTypingEffect(alertTemplate.typing), 
+                () => hideElement(style), 
+                5000, 0.8
             );
         } else {
             playAudio(null, 
-                () => showElement(html, alertTemplate.style) && startTypingEffect(alertTemplate.typing), 
-                () => hideElement(alertTemplate.style), 
-                3000, 0.6
+                () => showElement(html, style) && startTypingEffect(alertTemplate.typing), 
+                () => hideElement(style), 
+                3000, 0.8
             );
         }
 
@@ -182,7 +213,7 @@
 
         if (!item) return;
 
-        if (getSetting(item.type) === 'off') return;
+        if (getSetting('notification_' + item.type) === 'off') return;
 
         showNotification(item);
     }
@@ -295,13 +326,41 @@
 
 .ttstext {
     position: absolute;
-    width: 500px;
+    width: 560px;
     left: 0px;
     top: 310px;
     padding: 10px;
 }
 
 .ttstext img {
-    width: 28px;
+    max-height: 28px;
+}
+
+.avatardelayed {
+    filter: blur(50px);
+    animation: blur 1s linear forwards;
+    animation-delay: 4s;
+}
+
+.common {
+    background-color: rgb(var(--red)) !important;
+}
+
+.rare {
+    background-color: #5555FF !important;
+}
+
+.mythic {
+    background-color: #FF55FF !important;
+}
+
+.legendary {
+    background-color: #FFAA00 !important;
+}
+
+@keyframes blur {
+  to {
+    filter: blur(0px);
+  }
 }
 </style>
